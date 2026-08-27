@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+let rawBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').trim().replace(/\/+$/, '');
+const API_BASE_URL = rawBase.endsWith('/api') ? rawBase : `${rawBase}/api`;
 
 export async function fetchApi(endpoint, options = {}) {
   const token = localStorage.getItem('dkart_token');

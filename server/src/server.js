@@ -35,6 +35,21 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 const uploadDir = path.resolve(__dirname, '../uploads');
 app.use('/uploads', express.static(uploadDir));
 
+// Root welcome route
+app.get('/', (req, res) => {
+  res.json({
+    status: 'online',
+    message: 'Welcome to Dkart Backend API',
+    brand: 'Dkart Store',
+    domain: 'dkart.pk',
+    endpoints: {
+      health: '/api/health',
+      products: '/api/products',
+      categories: '/api/categories'
+    }
+  });
+});
+
 // Healthcheck
 app.get('/api/health', (req, res) => {
   res.json({
