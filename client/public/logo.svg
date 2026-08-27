@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" fill="none">
+  <!-- Dkart Icon Symbol -->
+  <g transform="translate(10, 10)">
+    <!-- Base D shape in Primary Brand Blue #1927F4 -->
+    <path d="M 5 0 C 2.238 0 0 2.238 0 5 L 0 55 C 0 57.762 2.238 60 5 60 L 30 60 C 46.568 60 60 46.568 60 30 C 60 13.432 46.568 0 30 0 Z" fill="#1927F4"/>
+    <!-- Inner dynamic cutout -->
+    <path d="M 16 16 L 28 16 C 36.836 16 44 23.164 44 32 C 44 40.836 36.836 48 28 48 L 16 48 Z" fill="#FFFFFF"/>
+    <!-- Shopping cart speed spark / accent arrow in Accent Orange #FF9100 -->
+    <path d="M 23 23 L 34 32 L 23 41 L 28 32 Z" fill="#FF9100"/>
+    <!-- Dot accent -->
+    <circle cx="48" cy="12" r="5" fill="#FF9100" />
+  </g>
+
+  <!-- Typography "Dkart" in Charcoal #414042 & Primary Blue #1927F4 -->
+  <text x="85" y="49" font-family="'Plus Jakarta Sans', system-ui, -apple-system, sans-serif" font-weight="800" font-size="40" fill="#414042" letter-spacing="-1.2">
+    D<tspan fill="#1927F4">kart</tspan>
+  </text>
+
+  <!-- .pk Domain Badge in Orange & White -->
+  <rect x="220" y="24" width="46" height="22" rx="6" fill="#FF9100" />
+  <text x="243" y="39" font-family="'Plus Jakarta Sans', system-ui, -apple-system, sans-serif" font-weight="800" font-size="12" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.5">
+    .PK
+  </text>
+</svg>
