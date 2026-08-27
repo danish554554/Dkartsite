@@ -43,7 +43,7 @@ export const handleUpload = (req, res) => {
     return res.status(400).json({ success: false, message: 'No image file uploaded.' });
   }
 
-  const serverBase = process.env.SERVER_URL || `http://localhost:${process.env.PORT || 5000}`;
+  const serverBase = process.env.SERVER_URL || `${req.protocol}://${req.get('host')}`;
   const fileUrl = `${serverBase}/uploads/${req.file.filename}`;
 
   res.json({
@@ -60,7 +60,7 @@ export const handleMultipleUpload = (req, res) => {
     return res.status(400).json({ success: false, message: 'No images uploaded.' });
   }
 
-  const serverBase = process.env.SERVER_URL || `http://localhost:${process.env.PORT || 5000}`;
+  const serverBase = process.env.SERVER_URL || `${req.protocol}://${req.get('host')}`;
   const files = req.files.map((file) => ({
     url: `${serverBase}/uploads/${file.filename}`,
     filename: file.filename,
