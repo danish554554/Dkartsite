@@ -378,7 +378,7 @@ export default function ProductDetailPage() {
 
                 <button
                   onClick={handleBuyNow}
-                  className="w-full py-4 px-6 rounded-xl font-black text-sm bg-dkart-blue hover:bg-dkart-blue-hover text-white shadow-dkart-lg transition-all flex items-center justify-center gap-2 active:scale-98"
+                  className="w-full py-4 px-6 rounded-xl font-black text-sm bg-dkart-orange hover:bg-dkart-orange-hover text-white shadow-md transition-all flex items-center justify-center gap-2 active:scale-98"
                 >
                   <Zap size={18} className="fill-white" />
                   <span>Buy Now (Cash on Delivery)</span>
@@ -386,7 +386,7 @@ export default function ProductDetailPage() {
               </div>
 
               <p className="text-[11px] text-center text-gray-400 font-medium">
-                ⚡ Order within the next 4 hours for dispatch tomorrow!
+                ⚡ Order within the next 4 hours for dispatch tomorrow via TCS / Leopard!
               </p>
             </div>
 
@@ -685,9 +685,10 @@ export default function ProductDetailPage() {
             </button>
             <button
               onClick={handleBuyNow}
-              className="px-4 py-2.5 bg-dkart-blue text-white rounded-xl text-xs font-extrabold shadow-dkart active:scale-95 whitespace-nowrap"
+              className="px-4 py-2.5 bg-dkart-orange hover:bg-dkart-orange-hover text-white rounded-xl text-xs font-black shadow-md active:scale-95 whitespace-nowrap flex items-center gap-1.5"
             >
-              Buy Now (COD)
+              <Zap size={14} className="fill-white" />
+              <span>Buy Now (COD)</span>
             </button>
           </div>
         </div>

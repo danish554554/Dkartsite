@@ -211,9 +211,9 @@ export default function CartPage() {
 
             <button
               onClick={() => navigate('/checkout')}
-              className="w-full py-4 bg-dkart-blue hover:bg-dkart-blue-hover text-white rounded-xl font-black text-sm flex items-center justify-center gap-2 shadow-dkart hover:shadow-dkart-lg transition-all"
+              className="w-full py-4 bg-dkart-orange hover:bg-dkart-orange-hover text-white rounded-xl font-black text-sm flex items-center justify-center gap-2 shadow-md transition-all active:scale-98"
             >
-              <span>Proceed to Checkout</span>
+              <span>Proceed to Checkout (COD)</span>
               <ArrowRight size={18} />
             </button>
 

@@ -417,7 +417,7 @@ export default function CheckoutPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-4 px-6 bg-dkart-blue hover:bg-dkart-blue-hover text-white rounded-xl font-black text-sm sm:text-base shadow-dkart-lg transition-all duration-200 active:scale-98 flex items-center justify-center gap-2"
+                  className="w-full py-4 px-6 bg-dkart-orange hover:bg-dkart-orange-hover text-white rounded-xl font-black text-sm sm:text-base shadow-md transition-all duration-200 active:scale-98 flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? (
                     <span className="flex items-center gap-2">

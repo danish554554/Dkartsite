@@ -9,6 +9,7 @@ import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
 import CartDrawer from './components/cart/CartDrawer';
 import ScrollToTop from './components/common/ScrollToTop';
+import WhatsAppButton from './components/common/WhatsAppButton';
 
 import HomePage from './pages/HomePage';
 import ShopPage from './pages/ShopPage';
@@ -82,6 +83,7 @@ function AppLayout() {
         </Routes>
       </main>
 
+      {!isAdminRoute && <WhatsAppButton />}
       {!isAdminRoute && <Footer />}
     </div>
   );
