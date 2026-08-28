@@ -21,7 +21,8 @@ export const getProducts = (req, res) => {
         p.*, 
         c.name as category_name, 
         c.slug as category_slug,
-        (SELECT url FROM product_images WHERE product_id = p.id ORDER BY is_primary DESC, display_order ASC LIMIT 1) as primary_image
+        (SELECT url FROM product_images WHERE product_id = p.id ORDER BY is_primary DESC, display_order ASC LIMIT 1) as primary_image,
+        (SELECT COUNT(*) FROM reviews WHERE product_id = p.id) as actual_review_count
       FROM products p
       LEFT JOIN categories c ON p.category_id = c.id
       WHERE 1=1
@@ -103,6 +104,7 @@ export const getProducts = (req, res) => {
 
     const formatted = products.map(p => ({
       ...p,
+      rating_count: p.actual_review_count !== undefined && p.actual_review_count !== null ? p.actual_review_count : p.rating_count,
       key_features: p.key_features ? JSON.parse(p.key_features) : [],
       specs: p.specs ? JSON.parse(p.specs) : {},
       is_in_stock: Boolean(p.is_in_stock),
