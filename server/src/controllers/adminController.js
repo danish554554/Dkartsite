@@ -224,7 +224,9 @@ export const updateProduct = (req, res) => {
         key_features = COALESCE(?, key_features),
         specs = COALESCE(?, specs),
         is_featured = ?,
-        is_trending = ?
+        is_trending = ?,
+        rating_average = COALESCE(?, rating_average),
+        rating_count = COALESCE(?, rating_count)
       WHERE id = ?
     `).run(
       title, cleanSlug, tagline, description,
@@ -236,6 +238,8 @@ export const updateProduct = (req, res) => {
       specs ? JSON.stringify(specs) : null,
       isFeatured ? 1 : 0,
       isTrending ? 1 : 0,
+      req.body.ratingAverage !== undefined ? req.body.ratingAverage : null,
+      req.body.ratingCount !== undefined ? req.body.ratingCount : null,
       id
     );
 

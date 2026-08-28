@@ -177,7 +177,7 @@ export function seedData() {
       1,
       'DK-ONESTEP-01',
       5.0,
-      248,
+      6,
       1,
       1
     );
@@ -239,7 +239,7 @@ export function seedData() {
       1,
       'DK-YES-02',
       5.0,
-      192,
+      6,
       1,
       1
     );
