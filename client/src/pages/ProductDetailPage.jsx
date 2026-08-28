@@ -14,6 +14,7 @@ import {
   ChevronDown,
   Info,
   Clock,
+  MapPin,
   Sparkles,
   MessageSquare,
   Camera,
