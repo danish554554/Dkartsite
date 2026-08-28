@@ -203,13 +203,15 @@ export default function OrderSuccessPage() {
             </Link>
 
             <a
-              href={`https://wa.me/923425097760?text=Hi%20Dkart,%20I%20have%20an%20inquiry%20regarding%20my%20order%20${order.id}`}
+              href={`https://wa.me/923425097760?text=${encodeURIComponent(
+                `Assalam-o-Alaikum Dkart.pk!\nI have placed order #${order.id}.\nTotal Amount (COD): Rs. ${Number(order.totalAmount || order.total_amount || 0).toLocaleString()}\nName: ${order.customerName || order.customer_name}\nAddress: ${address.streetAddress || address.street_address || ''}, ${address.city || ''}, ${address.province || ''}.\n\nPlease confirm my order and dispatch via TCS!`
+              )}`}
               target="_blank"
               rel="noreferrer"
-              className="flex-1 py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs sm:text-sm text-center transition flex items-center justify-center gap-1.5"
+              className="flex-1 py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs sm:text-sm text-center transition flex items-center justify-center gap-1.5 shadow-md active:scale-98"
             >
               <MessageSquare size={16} />
-              <span>WhatsApp Order Inquiries</span>
+              <span>Confirm Order on WhatsApp (+92 342 5097760)</span>
             </a>
           </div>
 

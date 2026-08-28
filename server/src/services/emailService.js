@@ -5,6 +5,48 @@ dotenv.config();
 // Create reusable transporter
 let transporter = null;
 
+// Helper to send email via Brevo REST API (HTTPS port 443 - zero firewall blocks)
+async function sendViaBrevoApi({ to, subject, htmlContent, senderEmail, senderName, apiKey }) {
+  const payload = {
+    sender: { name: senderName || 'Dkart.pk', email: senderEmail || 'admindkart@gmail.com' },
+    to: Array.isArray(to) ? to.map(e => ({ email: e })) : [{ email: to }],
+    subject,
+    htmlContent
+  };
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'accept': 'application/json',
+      'api-key': apiKey,
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || JSON.stringify(data));
+  return data;
+}
+
+// Helper to send email via Resend REST API (HTTPS port 443)
+async function sendViaResendApi({ to, subject, html, from, apiKey }) {
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      from: from || 'Dkart <onboarding@resend.dev>',
+      to: Array.isArray(to) ? to : [to],
+      subject,
+      html
+    })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || JSON.stringify(data));
+  return data;
+}
+
 function getTransporter() {
   if (transporter) return transporter;
 
@@ -18,7 +60,7 @@ function getTransporter() {
       transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: { user, pass },
-        family: 4 // Force IPv4 to eliminate ENETUNREACH on cloud environments
+        family: 4 // Force IPv4
       });
     } else {
       transporter = nodemailer.createTransport({
@@ -36,7 +78,6 @@ function getTransporter() {
       });
     }
   } else {
-    // Development or unconfigured fallback
     transporter = null;
   }
   return transporter;
@@ -327,19 +368,72 @@ function generateAdminEmailHtml(order, items) {
  */
 export async function sendOrderEmails(order, items) {
   try {
-    const client = getTransporter();
     const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER || 'admindkart@gmail.com';
     const sender = process.env.SMTP_FROM || `"Dkart.pk" <${process.env.SMTP_USER || 'admindkart@gmail.com'}>`;
+    const orderTotal = Number(order.total_amount || order.total || 0).toLocaleString();
 
     const customerHtml = generateCustomerEmailHtml(order, items);
     const adminHtml = generateAdminEmailHtml(order, items);
 
+    const brevoApiKey = process.env.BREVO_API_KEY || (process.env.SMTP_PASS && process.env.SMTP_PASS.startsWith('xkeysib-') ? process.env.SMTP_PASS : null);
+    const resendApiKey = process.env.RESEND_API_KEY || (process.env.SMTP_PASS && process.env.SMTP_PASS.startsWith('re_') ? process.env.SMTP_PASS : null);
+
+    // MODE 1: Brevo REST API (HTTPS Port 443 - zero block)
+    if (brevoApiKey) {
+      console.log('⚡ Dispatching emails via Brevo HTTPS REST API...');
+      if (order.customer_email && order.customer_email.includes('@')) {
+        await sendViaBrevoApi({
+          to: order.customer_email,
+          subject: `Order Confirmation #${order.id} - Dkart.pk`,
+          htmlContent: customerHtml,
+          senderEmail: 'admindkart@gmail.com',
+          senderName: 'Dkart Store',
+          apiKey: brevoApiKey
+        });
+        console.log(`✅ [Brevo API] Order confirmation sent to customer: ${order.customer_email}`);
+      }
+      await sendViaBrevoApi({
+        to: adminEmail,
+        subject: `🚨 New Order Alert #${order.id} - Rs. ${orderTotal} (${order.customer_name})`,
+        htmlContent: adminHtml,
+        senderEmail: 'admindkart@gmail.com',
+        senderName: 'Dkart Store Alert',
+        apiKey: brevoApiKey
+      });
+      console.log(`✅ [Brevo API] Executive order alert sent to Admin: ${adminEmail}`);
+      return { success: true, provider: 'brevo-api' };
+    }
+
+    // MODE 2: Resend REST API
+    if (resendApiKey) {
+      console.log('⚡ Dispatching emails via Resend HTTPS API...');
+      if (order.customer_email && order.customer_email.includes('@')) {
+        await sendViaResendApi({
+          to: order.customer_email,
+          subject: `Order Confirmation #${order.id} - Dkart.pk`,
+          html: customerHtml,
+          apiKey: resendApiKey
+        });
+        console.log(`✅ [Resend API] Order confirmation sent to customer: ${order.customer_email}`);
+      }
+      await sendViaResendApi({
+        to: adminEmail,
+        subject: `🚨 New Order Alert #${order.id} - Rs. ${orderTotal} (${order.customer_name})`,
+        html: adminHtml,
+        apiKey: resendApiKey
+      });
+      console.log(`✅ [Resend API] Executive order alert sent to Admin: ${adminEmail}`);
+      return { success: true, provider: 'resend-api' };
+    }
+
+    // MODE 3: Nodemailer (Gmail / Custom SMTP with IPv4)
+    const client = getTransporter();
     if (!client) {
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log('📧 [EMAIL DISPATCH LOG — SMTP SIMULATION]');
       console.log(`To Customer: ${order.customer_email || order.customer_name}`);
       console.log(`To Admin: ${adminEmail}`);
-      console.log(`Order ID: #${order.id} | COD Amount: Rs. ${order.total}`);
+      console.log(`Order ID: #${order.id} | COD Amount: Rs. ${orderTotal}`);
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       return { success: true, simulated: true };
     }
@@ -352,21 +446,21 @@ export async function sendOrderEmails(order, items) {
         subject: `Order Confirmation #${order.id} - Dkart.pk`,
         html: customerHtml
       });
-      console.log(`✅ Order confirmation email sent to customer: ${order.customer_email}`);
+      console.log(`✅ [SMTP] Order confirmation email sent to customer: ${order.customer_email}`);
     }
 
     // 2. Send Alert Email to Admin
     await client.sendMail({
       from: sender,
       to: adminEmail,
-      subject: `🚨 New Order Alert #${order.id} - Rs. ${Number(order.total).toLocaleString()} (${order.customer_name})`,
+      subject: `🚨 New Order Alert #${order.id} - Rs. ${orderTotal} (${order.customer_name})`,
       html: adminHtml
     });
-    console.log(`✅ New order alert email sent to Admin: ${adminEmail}`);
+    console.log(`✅ [SMTP] New order alert email sent to Admin: ${adminEmail}`);
 
-    return { success: true };
+    return { success: true, provider: 'smtp' };
   } catch (error) {
-    console.error('Email dispatch error (non-fatal):', error.message);
+    console.error('❌ Email dispatch error (non-fatal):', error.message);
     return { success: false, error: error.message };
   }
 }
