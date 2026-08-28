@@ -14,12 +14,27 @@ function getTransporter() {
   const pass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
 
   if (user && pass) {
-    transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure: port === 465, // true for 465, false for other ports
-      auth: { user, pass }
-    });
+    if (host.toLowerCase().includes('gmail')) {
+      transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: { user, pass },
+        family: 4 // Force IPv4 to eliminate ENETUNREACH on cloud environments
+      });
+    } else {
+      transporter = nodemailer.createTransport({
+        host,
+        port,
+        secure: port === 465,
+        auth: { user, pass },
+        family: 4, // Force IPv4
+        connectionTimeout: 15000,
+        greetingTimeout: 15000,
+        socketTimeout: 20000,
+        tls: {
+          rejectUnauthorized: false
+        }
+      });
+    }
   } else {
     // Development or unconfigured fallback
     transporter = null;
