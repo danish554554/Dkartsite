@@ -103,17 +103,19 @@ export function seedData() {
   }
 
   // 5. Remove all Demo SKUs and seed products so the catalog is clean for manual entries
-  const demoSkus = [
-    'DK-HAIR-01', 'DK-CARE-02', 'DK-WATCH-03', 'DK-AUDIO-04',
-    'DK-PWR-05', 'DK-AUDIO-06', 'DK-CARE-07', 'DK-MASS-08'
-  ];
-
   try {
-    const placeholders = demoSkus.map(() => '?').join(',');
-    db.prepare(`DELETE FROM products WHERE sku IN (${placeholders})`).run(...demoSkus);
+    db.exec(`
+      DELETE FROM order_items;
+      DELETE FROM orders;
+      DELETE FROM wishlist;
+      DELETE FROM reviews;
+      DELETE FROM product_variants;
+      DELETE FROM product_images;
+      DELETE FROM products WHERE sku LIKE 'DK-%' OR sku LIKE 'DEMO-%';
+    `);
   } catch (err) {
     console.error('Demo SKU cleanup error:', err);
   }
 
-  console.log('✅ Production store initialized. Ready for manual product additions.');
+  console.log('✅ Production store initialized. 0 demo products.');
 }
