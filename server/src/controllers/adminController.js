@@ -173,18 +173,25 @@ export const createProduct = (req, res) => {
 export const updateProduct = (req, res) => {
   try {
     const { id } = req.params;
+    const existing = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: 'Product not found.' });
+    }
+
     const {
-      title,
-      tagline,
-      description,
-      categoryId,
-      price,
-      salePrice,
-      stockQuantity,
-      badge,
-      sku,
-      isFeatured,
-      isTrending,
+      title = existing.title,
+      slug = req.body.slug || existing.slug,
+      tagline = existing.tagline,
+      description = existing.description,
+      categoryId = existing.category_id,
+      price = existing.price,
+      salePrice = existing.sale_price,
+      stockQuantity = existing.stock_quantity,
+      badge = existing.badge,
+      sku = existing.sku,
+      brand = existing.brand,
+      isFeatured = existing.is_featured,
+      isTrending = existing.is_trending,
       images,
       variants,
       keyFeatures,
@@ -192,39 +199,43 @@ export const updateProduct = (req, res) => {
     } = req.body;
 
     const regularPrice = parseFloat(price);
-    const sPrice = salePrice !== undefined && salePrice !== '' ? parseFloat(salePrice) : null;
+    const sPrice = salePrice !== undefined && salePrice !== '' && salePrice !== null ? parseFloat(salePrice) : null;
     const discount = sPrice && sPrice < regularPrice ? Math.round(((regularPrice - sPrice) / regularPrice) * 100) : 0;
     const stock = parseInt(stockQuantity, 10) || 0;
+
+    const cleanSlug = slug ? slug.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-') : existing.slug;
 
     db.prepare(`
       UPDATE products
       SET 
-        title = COALESCE(?, title),
-        slug = COALESCE(?, slug),
-        tagline = COALESCE(?, tagline),
-        description = COALESCE(?, description),
+        title = ?,
+        slug = ?,
+        tagline = ?,
+        description = ?,
         category_id = ?,
+        brand = ?,
         price = ?,
         sale_price = ?,
         discount_percentage = ?,
         stock_quantity = ?,
         is_in_stock = ?,
         badge = ?,
-        sku = COALESCE(?, sku),
+        sku = ?,
         key_features = COALESCE(?, key_features),
         specs = COALESCE(?, specs),
-        is_featured = COALESCE(?, is_featured),
-        is_trending = COALESCE(?, is_trending)
+        is_featured = ?,
+        is_trending = ?
       WHERE id = ?
     `).run(
-      title, req.body.slug ? req.body.slug.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-') : null, tagline, description,
+      title, cleanSlug, tagline, description,
       categoryId || null,
+      brand || 'Dkart',
       regularPrice, sPrice, discount, stock, stock > 0 ? 1 : 0,
       badge || null, sku,
       keyFeatures ? JSON.stringify(keyFeatures) : null,
       specs ? JSON.stringify(specs) : null,
-      isFeatured !== undefined ? (isFeatured ? 1 : 0) : null,
-      isTrending !== undefined ? (isTrending ? 1 : 0) : null,
+      isFeatured ? 1 : 0,
+      isTrending ? 1 : 0,
       id
     );
 
