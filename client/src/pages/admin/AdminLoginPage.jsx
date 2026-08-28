@@ -22,16 +22,15 @@ export default function AdminLoginPage() {
 
     try {
       setLoading(true);
-      const res = await login(email, password);
+      const loggedUser = await login(email, password);
 
       // Verify that the logged in user is actually an admin
-      if (res.user.role !== 'admin') {
+      if (loggedUser && loggedUser.role !== 'admin') {
         logout();
         addToast('Access denied. This portal is restricted to store administrators.', 'error');
         return;
       }
 
-      addToast('Welcome to Dkart Executive Control Portal.', 'success');
       navigate('/admin', { replace: true });
     } catch (err) {
       addToast(err.message || 'Administrator authentication failed.', 'error');

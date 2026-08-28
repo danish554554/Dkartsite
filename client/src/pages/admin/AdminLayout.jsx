@@ -19,10 +19,19 @@ import {
 import { useAuth } from '../../context/AuthContext';
 
 export default function AdminLayout() {
-  const { user, isAdmin, logout } = useAuth();
+  const { user, isAdmin, loading, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#1A1D24] flex items-center justify-center text-white text-xs font-bold">
+        <span className="w-5 h-5 border-2 border-dkart-blue border-t-transparent rounded-full animate-spin mr-2"></span>
+        Loading Admin Portal...
+      </div>
+    );
+  }
 
   // If not admin, redirect to private admin login portal
   if (!user || !isAdmin) {
