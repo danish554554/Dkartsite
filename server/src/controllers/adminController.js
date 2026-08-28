@@ -200,6 +200,7 @@ export const updateProduct = (req, res) => {
       UPDATE products
       SET 
         title = COALESCE(?, title),
+        slug = COALESCE(?, slug),
         tagline = COALESCE(?, tagline),
         description = COALESCE(?, description),
         category_id = ?,
@@ -216,7 +217,7 @@ export const updateProduct = (req, res) => {
         is_trending = COALESCE(?, is_trending)
       WHERE id = ?
     `).run(
-      title, tagline, description,
+      title, req.body.slug ? req.body.slug.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-') : null, tagline, description,
       categoryId || null,
       regularPrice, sPrice, discount, stock, stock > 0 ? 1 : 0,
       badge || null, sku,
