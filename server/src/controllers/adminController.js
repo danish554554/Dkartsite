@@ -103,10 +103,9 @@ export const createProduct = (req, res) => {
       return res.status(400).json({ success: false, message: 'Title, price, and description are required.' });
     }
 
-    const slug = title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '') + '-' + Math.floor(100 + Math.random() * 900);
+    const slug = req.body.slug
+      ? req.body.slug.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-')
+      : (title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
 
     const regularPrice = parseFloat(price);
     const sPrice = salePrice ? parseFloat(salePrice) : null;

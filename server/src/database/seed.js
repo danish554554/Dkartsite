@@ -102,23 +102,5 @@ export function seedData() {
     insertCoupon.run('WELCOME500', 'fixed', 500, 4000, 1);
   }
 
-  // 5. Remove all Demo SKUs and seed products so the catalog is clean for manual entries
-  try {
-    db.pragma('foreign_keys = OFF');
-    db.exec(`
-      DELETE FROM order_items;
-      DELETE FROM orders;
-      DELETE FROM wishlist;
-      DELETE FROM reviews;
-      DELETE FROM product_variants;
-      DELETE FROM product_images;
-      DELETE FROM products WHERE sku LIKE 'DK-%' OR sku LIKE 'DEMO-%';
-    `);
-    db.pragma('foreign_keys = ON');
-  } catch (err) {
-    db.pragma('foreign_keys = ON');
-    console.error('Demo SKU cleanup error:', err);
-  }
-
-  console.log('✅ Production store initialized. 0 demo products.');
+  console.log('✅ Store database ready with Admin, Categories, and real products.');
 }
