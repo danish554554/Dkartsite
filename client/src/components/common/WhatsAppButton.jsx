@@ -4,7 +4,7 @@ import { MessageCircle, X } from 'lucide-react';
 export default function WhatsAppButton() {
   const [isOpen, setIsOpen] = useState(false);
 
-  const WHATSAPP_NUMBER = '923001234567'; // Dkart Official WhatsApp Helpdesk
+  const WHATSAPP_NUMBER = '923425097760'; // Dkart Official WhatsApp Helpdesk
   const DEFAULT_MESSAGE = encodeURIComponent("Hi Dkart! I'm shopping on dkart.pk and need quick assistance with my order.");
 
   const openWhatsApp = () => {

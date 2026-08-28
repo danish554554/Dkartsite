@@ -538,7 +538,7 @@ export default function ProductDetailPage() {
                 <div className="p-4 rounded-2xl bg-gray-50 border border-gray-200 space-y-2">
                   <h4 className="font-bold text-dkart-charcoal">7-Day Replacement Policy:</h4>
                   <p>
-                    Every Dkart product is thoroughly tested before packing. If your item arrives damaged, non-functional, or missing accessories, WhatsApp our official helpline at <strong>0300-1234567</strong> within 7 days for a free replacement.
+                    Every Dkart product is thoroughly tested before packing. If your item arrives damaged, non-functional, or missing accessories, WhatsApp our official helpline at <strong>0342-5097760</strong> within 7 days for a free replacement.
                   </p>
                 </div>
               </div>

@@ -196,7 +196,7 @@ export default function OrderSuccessPage() {
             </Link>
 
             <a
-              href={`https://wa.me/923001234567?text=Hi%20Dkart,%20I%20have%20an%20inquiry%20regarding%20my%20order%20${order.id}`}
+              href={`https://wa.me/923425097760?text=Hi%20Dkart,%20I%20have%20an%20inquiry%20regarding%20my%20order%20${order.id}`}
               target="_blank"
               rel="noreferrer"
               className="flex-1 py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs sm:text-sm text-center transition flex items-center justify-center gap-1.5"

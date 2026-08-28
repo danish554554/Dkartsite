@@ -37,7 +37,7 @@ export default function Footer() {
               </div>
               <div className="flex items-center gap-2">
                 <Phone size={15} className="text-dkart-orange flex-shrink-0" />
-                <span>UAN Support: +92 300 1234567 (10 AM - 10 PM)</span>
+                <span>Helpline / WhatsApp: +92 342 5097760 (24/7 Support)</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail size={15} className="text-dkart-orange flex-shrink-0" />
@@ -118,7 +118,7 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="https://wa.me/923001234567"
+                  href="https://wa.me/923425097760"
                   target="_blank"
                   rel="noreferrer"
                   className="text-emerald-400 font-semibold flex items-center gap-1 hover:underline"

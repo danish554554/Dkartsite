@@ -206,7 +206,7 @@ export default function OrderTrackingPage() {
                 <span>Need urgent delivery support? WhatsApp us with your Order ID.</span>
               </div>
               <a
-                href={`https://wa.me/923001234567?text=Hello%20Dkart,%20inquiring%20about%20Order%20${order.id}`}
+                href={`https://wa.me/923425097760?text=Hello%20Dkart,%20inquiring%20about%20Order%20${order.id}`}
                 target="_blank"
                 rel="noreferrer"
                 className="font-bold text-dkart-blue hover:underline whitespace-nowrap"

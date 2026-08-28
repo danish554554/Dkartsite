@@ -141,7 +141,7 @@ export default function PaymentDeliveryPage() {
             </p>
             <ul className="list-disc pl-5 space-y-1.5 text-xs">
               <li>Contact our customer support team within <strong>7 days</strong> of delivery.</li>
-              <li>Share a brief photo or video of the parcel and defective item via WhatsApp to <strong>0300-1234567</strong>.</li>
+              <li>Share a brief photo or video of the parcel and defective item via WhatsApp to <strong>0342-5097760</strong>.</li>
               <li>Once verified, our courier partner will deliver a brand-new replacement unit to your doorstep.</li>
             </ul>
           </div>
@@ -154,7 +154,7 @@ export default function PaymentDeliveryPage() {
             <p className="text-xs text-blue-200">Our customer support team is available on WhatsApp 7 days a week.</p>
           </div>
           <a
-            href="https://wa.me/923001234567"
+            href="https://wa.me/923425097760"
             target="_blank"
             rel="noreferrer"
             className="px-6 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs sm:text-sm shadow-md transition flex items-center gap-2"

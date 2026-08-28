@@ -112,13 +112,13 @@ export default function Navbar() {
             </Link>
             <span className="text-gray-600">•</span>
             <a
-              href="https://wa.me/923001234567"
+              href="https://wa.me/923425097760"
               target="_blank"
               rel="noreferrer"
               className="flex items-center gap-1 hover:text-emerald-400 transition"
             >
               <Headphones size={13} />
-              WhatsApp Help: 0300-1234567
+              WhatsApp: 0342-5097760
             </a>
           </div>
         </div>
