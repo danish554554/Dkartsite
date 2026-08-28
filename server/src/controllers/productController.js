@@ -137,8 +137,8 @@ export const getProductBySlug = (req, res) => {
         c.slug as category_slug
       FROM products p
       LEFT JOIN categories c ON p.category_id = c.id
-      WHERE p.slug = ?
-    `).get(slug);
+      WHERE p.slug = ? OR p.slug LIKE ? OR p.id = ?
+    `).get(slug, `${slug}%`, isNaN(Number(slug)) ? -1 : Number(slug));
 
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found.' });
