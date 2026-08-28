@@ -19,6 +19,7 @@ import {
 import { api } from '../../services/api';
 import { formatPrice } from '../../utils/helpers';
 import { useToast } from '../../context/ToastContext';
+import { compressImage } from '../../utils/imageCompressor';
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
@@ -152,7 +153,10 @@ export default function AdminProducts() {
 
     try {
       setUploadingImages(true);
-      const res = await api.uploadMultipleImages(files);
+      const compressedFiles = await Promise.all(
+        Array.from(files).map((file) => compressImage(file, 1000, 0.82))
+      );
+      const res = await api.uploadMultipleImages(compressedFiles);
       if (res.success && res.files) {
         const uploadedImages = res.files.map((f, i) => ({
           url: f.url,
@@ -163,7 +167,7 @@ export default function AdminProducts() {
           ...prev,
           images: [...prev.images, ...uploadedImages]
         }));
-        addToast(`${res.files.length} images uploaded successfully!`, 'success');
+        addToast(`${res.files.length} images compressed (<100KB) & uploaded!`, 'success');
       }
     } catch (err) {
       addToast(err.message || 'Failed to upload images.', 'error');
