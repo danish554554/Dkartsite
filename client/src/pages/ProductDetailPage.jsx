@@ -14,15 +14,19 @@ import {
   ChevronDown,
   Info,
   Clock,
-  MapPin,
   Sparkles,
-  MessageSquare
+  MessageSquare,
+  Camera,
+  Upload,
+  X,
+  Image as ImageIcon
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useToast } from '../context/ToastContext';
 import { api } from '../services/api';
 import { formatPrice, calculateDiscount, trackEvent } from '../utils/helpers';
+import { compressImage } from '../utils/imageCompressor';
 import ProductCard from '../components/common/ProductCard';
 
 export default function ProductDetailPage() {
@@ -41,38 +45,42 @@ export default function ProductDetailPage() {
 
   // Review submission state
   const [reviewForm, setReviewForm] = useState({ name: '', city: 'Karachi', rating: 5, comment: '' });
+  const [reviewPhotos, setReviewPhotos] = useState([]); // array of { file, previewUrl }
+  const [uploadingReviewPhotos, setUploadingReviewPhotos] = useState(false);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [activeLightboxImg, setActiveLightboxImg] = useState(null);
 
   // Sticky mobile bottom bar visibility
   const [showStickyBar, setShowStickyBar] = useState(false);
   const buySectionRef = useRef(null);
 
-  useEffect(() => {
-    async function loadProduct() {
-      try {
-        setLoading(true);
-        const res = await api.getProductBySlug(slug);
-        if (res.success) {
-          setProduct(res.data);
-          setSelectedImageIndex(0);
-          if (res.data.variants && res.data.variants.length > 0) {
-            setSelectedVariant(res.data.variants[0]);
-          }
-          // Analytics Track Product View
-          trackEvent('ViewContent', {
-            content_name: res.data.title,
-            content_category: res.data.category_name,
-            content_ids: [res.data.id],
-            value: res.data.sale_price || res.data.price,
-            currency: 'PKR'
-          });
+  const loadProduct = async () => {
+    try {
+      setLoading(true);
+      const res = await api.getProductBySlug(slug);
+      if (res.success) {
+        setProduct(res.data);
+        setSelectedImageIndex(0);
+        if (res.data.variants && res.data.variants.length > 0) {
+          setSelectedVariant(res.data.variants[0]);
         }
-      } catch (err) {
-        console.error('Failed to load product:', err);
-      } finally {
-        setLoading(false);
+        // Analytics Track Product View
+        trackEvent('ViewContent', {
+          content_name: res.data.title,
+          content_category: res.data.category_name,
+          content_ids: [res.data.id],
+          value: res.data.sale_price || res.data.price,
+          currency: 'PKR'
+        });
       }
+    } catch (err) {
+      console.error('Failed to load product:', err);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
     loadProduct();
     window.scrollTo(0, 0);
   }, [slug]);
@@ -134,6 +142,39 @@ export default function ProductDetailPage() {
     navigate('/checkout');
   };
 
+  const handleReviewPhotoSelect = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    if (reviewPhotos.length + files.length > 4) {
+      addToast('You can attach a maximum of 4 photos per review.', 'error');
+      return;
+    }
+
+    try {
+      setUploadingReviewPhotos(true);
+      const compressed = await Promise.all(
+        files.map((file) => compressImage(file, 900, 0.8))
+      );
+
+      const items = compressed.map((file) => ({
+        file,
+        previewUrl: URL.createObjectURL(file)
+      }));
+
+      setReviewPhotos((prev) => [...prev, ...items]);
+      addToast(`${compressed.length} photo(s) compressed (<100KB) & attached!`, 'success');
+    } catch (err) {
+      addToast('Failed to process photos.', 'error');
+    } finally {
+      setUploadingReviewPhotos(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleRemoveReviewPhoto = (index) => {
+    setReviewPhotos((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     if (!reviewForm.name.trim() || !reviewForm.comment.trim()) {
@@ -142,22 +183,32 @@ export default function ProductDetailPage() {
     }
     try {
       setIsSubmittingReview(true);
+      let uploadedUrls = [];
+
+      if (reviewPhotos.length > 0) {
+        const filesToUpload = reviewPhotos.map((p) => p.file);
+        const uploadRes = await api.uploadReviewImages(filesToUpload);
+        if (uploadRes.success && uploadRes.files) {
+          uploadedUrls = uploadRes.files.map((f) => f.url);
+        }
+      }
+
       const res = await api.submitReview({
         productId: product.id,
-        userName: reviewForm.name,
-        city: reviewForm.city,
+        userName: reviewForm.name.trim(),
+        city: reviewForm.city.trim() || 'Karachi',
         rating: reviewForm.rating,
-        comment: reviewForm.comment
+        comment: reviewForm.comment.trim(),
+        images: uploadedUrls
       });
       if (res.success) {
-        addToast('Thank you! Your verified review was added.', 'success');
+        addToast('Thank you! Your verified review and unboxing photos were posted.', 'success');
         setReviewForm({ name: '', city: 'Karachi', rating: 5, comment: '' });
-        // Refresh product data
-        const updated = await api.getProductBySlug(slug);
-        if (updated.success) setProduct(updated.data);
+        setReviewPhotos([]);
+        loadProduct();
       }
     } catch (err) {
-      addToast('Failed to submit review. Try again.', 'error');
+      addToast(err.message || 'Failed to submit review.', 'error');
     } finally {
       setIsSubmittingReview(false);
     }
@@ -605,12 +656,61 @@ export default function ProductDetailPage() {
                     className="w-full p-2.5 border rounded-xl bg-gray-50 text-xs focus:outline-none focus:border-dkart-blue"
                     required
                   />
+
+                  {/* Attach Unboxing Photos */}
+                  <div className="space-y-2 pt-1 border-t border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-dkart-charcoal flex items-center gap-1.5">
+                        <Camera size={14} className="text-dkart-blue" />
+                        Attach Customer Unboxing Photos (Optional, Max 4)
+                      </label>
+                      <span className="text-[11px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-md">
+                        ⚡ Auto-compressed (&lt;100KB)
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-3 flex-wrap">
+                      {reviewPhotos.length < 4 && (
+                        <label className="cursor-pointer flex items-center gap-2 px-3.5 py-2 border-2 border-dashed border-gray-300 hover:border-dkart-blue rounded-xl bg-gray-50 hover:bg-blue-50/50 text-xs font-semibold text-gray-700 transition">
+                          <Upload size={14} className="text-dkart-blue" />
+                          <span>{uploadingReviewPhotos ? 'Compressing...' : 'Add Real Photos'}</span>
+                          <input
+                            type="file"
+                            accept="image/png, image/jpeg, image/jpg, image/webp"
+                            multiple
+                            disabled={uploadingReviewPhotos}
+                            onChange={handleReviewPhotoSelect}
+                            className="hidden"
+                          />
+                        </label>
+                      )}
+
+                      {reviewPhotos.map((photo, idx) => (
+                        <div key={idx} className="relative group w-16 h-16 rounded-xl overflow-hidden border border-gray-200 shadow-2xs">
+                          <img
+                            src={photo.previewUrl}
+                            alt={`Preview ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveReviewPhoto(idx)}
+                            className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-0.5 shadow transition opacity-90 hover:opacity-100"
+                            title="Remove photo"
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                   <button
                     type="submit"
-                    disabled={isSubmittingReview}
-                    className="px-5 py-2 bg-dkart-blue text-white rounded-xl text-xs font-bold hover:bg-dkart-blue-hover transition"
+                    disabled={isSubmittingReview || uploadingReviewPhotos}
+                    className="px-5 py-2.5 bg-dkart-blue text-white rounded-xl text-xs font-bold hover:bg-dkart-blue-hover transition shadow-sm disabled:opacity-50"
                   >
-                    {isSubmittingReview ? 'Submitting...' : 'Post Verified Review'}
+                    {isSubmittingReview ? 'Compressing & Submitting...' : 'Post Verified Review'}
                   </button>
                 </form>
 
@@ -634,6 +734,27 @@ export default function ProductDetailPage() {
                           </div>
                         </div>
                         <p className="text-xs text-gray-600 leading-relaxed">{rev.comment}</p>
+
+                        {/* Customer Photos */}
+                        {rev.images && rev.images.length > 0 && (
+                          <div className="flex items-center gap-2 pt-1.5 flex-wrap">
+                            {rev.images.map((imgUrl, i) => (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() => setActiveLightboxImg(imgUrl)}
+                                className="focus:outline-none focus:ring-2 focus:ring-dkart-blue rounded-xl overflow-hidden"
+                              >
+                                <img
+                                  src={imgUrl}
+                                  alt={`Customer review photo ${i + 1}`}
+                                  className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl border border-gray-200 hover:scale-105 transition-transform duration-200 shadow-2xs cursor-pointer"
+                                  loading="lazy"
+                                />
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ))
                   ) : (
@@ -690,6 +811,32 @@ export default function ProductDetailPage() {
               <Zap size={14} className="fill-white" />
               <span>Buy Now (COD)</span>
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 6. LIGHTBOX MODAL FOR CUSTOMER REVIEW PHOTOS */}
+      {activeLightboxImg && (
+        <div
+          onClick={() => setActiveLightboxImg(null)}
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4"
+        >
+          <div
+            className="relative max-w-3xl max-h-[90vh] bg-black rounded-2xl overflow-hidden shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setActiveLightboxImg(null)}
+              className="absolute top-3 right-3 z-10 bg-white/90 hover:bg-white text-dkart-charcoal rounded-full p-1.5 shadow-lg transition"
+            >
+              <X size={20} />
+            </button>
+            <img
+              src={activeLightboxImg}
+              alt="Customer Review Enlarged"
+              className="max-w-full max-h-[85vh] object-contain mx-auto"
+            />
           </div>
         </div>
       )}

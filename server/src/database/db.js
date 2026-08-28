@@ -95,6 +95,7 @@ export function initDatabase() {
       rating INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),
       comment TEXT NOT NULL,
       city TEXT DEFAULT 'Karachi',
+      images TEXT DEFAULT '[]',
       verified_purchase INTEGER DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE
@@ -168,6 +169,18 @@ export function initDatabase() {
       FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE
     );
   `);
+
+  // Migration: Ensure images column exists in reviews table
+  try {
+    const tableInfo = db.pragma('table_info(reviews)');
+    const hasImages = tableInfo.some((col) => col.name === 'images');
+    if (!hasImages) {
+      db.exec("ALTER TABLE reviews ADD COLUMN images TEXT DEFAULT '[]'");
+      console.log("✅ Migrated reviews table: added 'images' column.");
+    }
+  } catch (err) {
+    console.error('Reviews migration error:', err);
+  }
 
   console.log('Database initialized successfully with complete relational schema.');
 }

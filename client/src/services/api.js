@@ -49,6 +49,25 @@ export const api = {
     method: 'POST',
     body: JSON.stringify({ code, subtotal })
   }),
+  uploadReviewImages: (files) => {
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      formData.append('images', files[i]);
+    }
+    const token = localStorage.getItem('dkart_token');
+    const headers = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    return fetch(`${API_BASE_URL}/reviews/upload`, {
+      method: 'POST',
+      headers,
+      body: formData
+    }).then(async (res) => {
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Image upload failed.');
+      return data;
+    });
+  },
   submitReview: (reviewData) => fetchApi('/reviews', {
     method: 'POST',
     body: JSON.stringify(reviewData)

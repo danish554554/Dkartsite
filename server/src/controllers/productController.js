@@ -160,12 +160,29 @@ export const getProductBySlug = (req, res) => {
     `).all(product.id);
 
     // Fetch reviews
-    const reviews = db.prepare(`
-      SELECT id, user_name, rating, comment, city, verified_purchase, created_at 
+    const rawReviews = db.prepare(`
+      SELECT id, user_name, rating, comment, city, images, verified_purchase, created_at 
       FROM reviews 
       WHERE product_id = ? 
       ORDER BY id DESC
     `).all(product.id);
+
+    const reviews = rawReviews.map((r) => {
+      let imgList = [];
+      if (typeof r.images === 'string') {
+        try {
+          imgList = JSON.parse(r.images);
+        } catch {
+          imgList = [];
+        }
+      } else if (Array.isArray(r.images)) {
+        imgList = r.images;
+      }
+      return {
+        ...r,
+        images: imgList
+      };
+    });
 
     // Fetch related products (up to 4 from same category)
     const relatedProducts = db.prepare(`
@@ -274,18 +291,19 @@ export const verifyCoupon = (req, res) => {
 
 export const submitReview = (req, res) => {
   try {
-    const { productId, userName, rating, comment, city } = req.body;
+    const { productId, userName, rating, comment, city, images = [] } = req.body;
 
     if (!productId || !userName || !rating || !comment) {
       return res.status(400).json({ success: false, message: 'All review fields are required.' });
     }
 
     const numericRating = Math.min(5, Math.max(1, parseInt(rating, 10)));
+    const imagesJson = JSON.stringify(Array.isArray(images) ? images : []);
 
     db.prepare(`
-      INSERT INTO reviews (product_id, user_name, rating, comment, city, verified_purchase)
-      VALUES (?, ?, ?, ?, ?, 1)
-    `).run(productId, userName.trim(), numericRating, comment.trim(), city ? city.trim() : 'Karachi');
+      INSERT INTO reviews (product_id, user_name, rating, comment, city, images, verified_purchase)
+      VALUES (?, ?, ?, ?, ?, ?, 1)
+    `).run(productId, userName.trim(), numericRating, comment.trim(), city ? city.trim() : 'Karachi', imagesJson);
 
     // Recalculate average rating
     const stats = db.prepare(`
@@ -302,6 +320,7 @@ export const submitReview = (req, res) => {
 
     res.status(201).json({ success: true, message: 'Review submitted successfully.' });
   } catch (error) {
+    console.error('Submit review error:', error);
     res.status(500).json({ success: false, message: 'Failed to submit review.' });
   }
 };
