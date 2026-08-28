@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Package,
@@ -24,35 +24,9 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // If not admin, show access restricted message
+  // If not admin, redirect to private admin login portal
   if (!user || !isAdmin) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-3xl p-8 border border-gray-200 shadow-card text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto">
-            <ShieldAlert size={32} />
-          </div>
-          <h2 className="text-xl font-bold text-dkart-charcoal">Admin Access Required</h2>
-          <p className="text-xs text-gray-500">
-            You must be logged in as an administrator to access the Dkart Store management dashboard.
-          </p>
-          <div className="flex gap-2 pt-2">
-            <Link
-              to="/login"
-              className="flex-1 py-2.5 bg-dkart-blue text-white rounded-xl text-xs font-bold shadow-dkart"
-            >
-              Sign In as Admin
-            </Link>
-            <Link
-              to="/"
-              className="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-xs font-bold"
-            >
-              Storefront
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
+    return <Navigate to="/admin/login" state={{ from: location.pathname }} replace />;
   }
 
   const navItems = [

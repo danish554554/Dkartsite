@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LogIn, Lock, Mail, ArrowRight, ShieldCheck } from 'lucide-react';
+import { LogIn, Lock, Mail, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
@@ -34,16 +34,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleQuickFill = (role) => {
-    if (role === 'admin') {
-      setEmail('admin@dkart.pk');
-      setPassword('admin123');
-    } else {
-      setEmail('customer@dkart.pk');
-      setPassword('customer123');
-    }
-  };
-
   return (
     <div className="bg-[#F8F9FB] min-h-screen py-12 sm:py-16 flex items-center justify-center">
       <div className="max-w-md w-full mx-auto px-4">
@@ -61,27 +51,6 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Quick Demo Credentials Box for Testing */}
-          <div className="p-3.5 bg-blue-50/70 border border-blue-100 rounded-2xl space-y-2 text-xs">
-            <p className="font-bold text-dkart-blue">Quick Demo Credentials (1-Click Fill):</p>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickFill('admin')}
-                className="flex-1 py-1.5 px-2 bg-white text-dkart-charcoal font-bold rounded-lg border border-blue-200 hover:border-dkart-blue transition shadow-2xs"
-              >
-                Admin (admin@dkart.pk)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickFill('customer')}
-                className="flex-1 py-1.5 px-2 bg-white text-dkart-charcoal font-bold rounded-lg border border-blue-200 hover:border-dkart-blue transition shadow-2xs"
-              >
-                Customer (customer@dkart.pk)
-              </button>
-            </div>
-          </div>
-
           <form onSubmit={handleSubmit} className="space-y-4 text-xs sm:text-sm">
             <div className="space-y-1">
               <label className="font-bold text-dkart-charcoal">Email Address</label>
@@ -91,7 +60,7 @@ export default function LoginPage() {
                   placeholder="name@domain.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full p-3 pl-10 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-dkart-blue"
+                  className="w-full p-3 pl-10 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-dkart-blue text-xs"
                   required
                 />
                 <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -108,7 +77,7 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full p-3 pl-10 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-dkart-blue"
+                  className="w-full p-3 pl-10 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-dkart-blue text-xs"
                   required
                 />
                 <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
