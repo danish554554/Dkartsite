@@ -107,7 +107,7 @@ export default function CheckoutPage() {
         });
 
         clearCart();
-        navigate(`/order-success/${res.order.id}`, { state: { order: res.order } });
+        navigate(`/order-success/${res.order.id}`, { state: { order: res.order, whatsApp: res.whatsApp } });
       }
     } catch (err) {
       console.error('Checkout error:', err);

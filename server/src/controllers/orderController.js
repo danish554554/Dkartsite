@@ -1,4 +1,6 @@
 import { db } from '../database/db.js';
+import { sendOrderEmails } from '../services/emailService.js';
+import { generateCustomerWhatsAppReceipt } from '../services/whatsappService.js';
 
 export const createOrder = (req, res) => {
   try {
@@ -40,6 +42,7 @@ export const createOrder = (req, res) => {
         image: product.image || item.image || '',
         variantName: item.variantName || 'Standard',
         unitPrice,
+        price: unitPrice,
         quantity: qty,
         subtotal: lineTotal
       });
@@ -127,6 +130,28 @@ export const createOrder = (req, res) => {
 
     executeTransaction();
 
+    const orderPayload = {
+      id: orderId,
+      customer_name: customerName.trim(),
+      customer_phone: customerPhone.trim(),
+      customer_email: customerEmail ? customerEmail.trim() : null,
+      shipping_address: shippingAddress,
+      payment_method: paymentMethod,
+      subtotal,
+      discount: discountAmount,
+      shipping_fee: shippingFee,
+      total: totalAmount,
+      tracking_number: trackingNumber
+    };
+
+    // Trigger Email notifications to Customer & Admin
+    sendOrderEmails(orderPayload, verifiedItems).catch((err) => {
+      console.error('Background email notification error:', err);
+    });
+
+    // Generate WhatsApp Receipt
+    const whatsappData = generateCustomerWhatsAppReceipt(orderPayload, verifiedItems);
+
     res.status(201).json({
       success: true,
       message: 'Order placed successfully! Cash on delivery booked.',
@@ -145,7 +170,8 @@ export const createOrder = (req, res) => {
         trackingNumber,
         items: verifiedItems,
         createdAt: new Date().toISOString()
-      }
+      },
+      whatsApp: whatsappData
     });
   } catch (error) {
     console.error('Order creation error:', error);

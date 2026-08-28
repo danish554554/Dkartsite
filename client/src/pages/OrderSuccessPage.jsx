@@ -91,6 +91,13 @@ export default function OrderSuccessPage() {
             <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto">
               Your parcel has been booked for nationwide delivery. You will pay in cash upon receiving the parcel.
             </p>
+            {(order.customerEmail || order.customer_email) && (
+              <div className="pt-2">
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-3.5 py-1.5 rounded-xl">
+                  📧 Confirmation email sent to: <strong>{order.customerEmail || order.customer_email}</strong>
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Quick Tracking Identifiers */}
