@@ -112,35 +112,34 @@ export function seedData() {
   }
 
   // 5. Ensure Official Live Products Exist
-  const productCount = db.prepare('SELECT COUNT(*) as count FROM products').get().count;
-  if (productCount === 0) {
-    const hairCat = db.prepare("SELECT id FROM categories WHERE slug = 'hair-styling'").get();
-    const personalCat = db.prepare("SELECT id FROM categories WHERE slug = 'personal-care'").get();
+  const hairCat = db.prepare("SELECT id FROM categories WHERE slug = 'hair-styling'").get();
+  const personalCat = db.prepare("SELECT id FROM categories WHERE slug = 'personal-care'").get();
 
-    const insertProd = db.prepare(`
-      INSERT INTO products (
-        title, slug, tagline, description, key_features, specs, category_id, brand,
-        badge, price, sale_price, discount_percentage, stock_quantity, is_in_stock,
-        sku, rating_average, rating_count, is_featured, is_trending
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
+  const insertProd = db.prepare(`
+    INSERT INTO products (
+      title, slug, tagline, description, key_features, specs, category_id, brand,
+      badge, price, sale_price, discount_percentage, stock_quantity, is_in_stock,
+      sku, rating_average, rating_count, is_featured, is_trending
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
 
-    const insertImg = db.prepare(`
-      INSERT INTO product_images (product_id, url, alt_text, is_primary, display_order)
-      VALUES (?, ?, ?, ?, ?)
-    `);
+  const insertImg = db.prepare(`
+    INSERT INTO product_images (product_id, url, alt_text, is_primary, display_order)
+    VALUES (?, ?, ?, ?, ?)
+  `);
 
-    const insertVar = db.prepare(`
-      INSERT INTO product_variants (product_id, variant_type, variant_name, price_modifier, stock_quantity, image_url)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `);
+  const insertVar = db.prepare(`
+    INSERT INTO product_variants (product_id, variant_type, variant_name, price_modifier, stock_quantity, image_url)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
 
-    const insertRev = db.prepare(`
-      INSERT INTO reviews (product_id, user_name, rating, comment, city, images, verified_purchase)
-      VALUES (?, ?, ?, ?, ?, ?, 1)
-    `);
+  const insertRev = db.prepare(`
+    INSERT INTO reviews (product_id, user_name, rating, comment, city, images, verified_purchase)
+    VALUES (?, ?, ?, ?, ?, ?, 1)
+  `);
 
-    // Product 1: Hair Dryer Brush
+  // Product 1: Hair Dryer Brush
+  if (!db.prepare("SELECT id FROM products WHERE slug = '3-in-1-hair-dryer-brush'").get()) {
     const p1Info = insertProd.run(
       'Hair Dryer Brush 3 in 1 Hot Air Brush | Blow Dryer, Straightener & Volumizer for Hair Styling',
       '3-in-1-hair-dryer-brush',
@@ -203,103 +202,107 @@ export function seedData() {
       { name: 'Zainab Raza', rating: 5, city: 'Multan', comment: 'Alhamdulillah bohot achi product ha, original One Step brush ha. Heat bilkul perfect ha.', images: [] }
     ].forEach((rev) => insertRev.run(p1Id, rev.name, rev.rating, rev.comment, rev.city, JSON.stringify(rev.images)));
 
+    }
+
     // Product 2: Yes Finishing Touch
-    const p2Info = insertProd.run(
-      'Yes Finishing Rechargeable Hair Removal Shaver for Women – Facial, Bikini Line & Underarm Painless Electric Trimmer',
-      'yes-finishing-hair-remover',
-      'Instant, pain-free hair removal with smart Sensalight technology for smooth, glowing skin anywhere, anytime.',
-      'Say goodbye to painful waxing, razors, and expensive parlor treatments with the Yes Finishing Touch Instant & Painless Hair Remover. Engineered with advanced Sensa-Light Technology, the device automatically activates micro-oscillation only when in direct contact with skin, removing unwanted hair from roots without nicks, burns, redness, or bumps.\n\nDesigned specifically for women delicate skin, it is ideal for full facial grooming (upper lips, chin, cheeks, sideburns), as well as sensitive body zones like underarms, arms, legs, and the bikini line. It features two interchangeable heads: a micro-foil head for short stubble and smooth finishing, and a trimmer head for longer hair.\n\nThe compact, USB rechargeable lithium-ion battery makes it travel-friendly and convenient for quick touch-ups on the go without requiring water, shaving cream, or soap.',
+    if (!db.prepare("SELECT id FROM products WHERE slug = 'yes-finishing-hair-remover'").get()) {
+      const p2Info = insertProd.run(
+        'Yes Finishing Rechargeable Hair Removal Shaver for Women – Facial, Bikini Line & Underarm Painless Electric Trimmer',
+        'yes-finishing-hair-remover',
+        'Instant, pain-free hair removal with smart Sensalight technology for smooth, glowing skin anywhere, anytime.',
+        'Say goodbye to painful waxing, razors, and expensive parlor treatments with the Yes Finishing Touch Instant & Painless Hair Remover. Engineered with advanced Sensa-Light Technology, the device automatically activates micro-oscillation only when in direct contact with skin, removing unwanted hair from roots without nicks, burns, redness, or bumps.\n\nDesigned specifically for women delicate skin, it is ideal for full facial grooming (upper lips, chin, cheeks, sideburns), as well as sensitive body zones like underarms, arms, legs, and the bikini line. It features two interchangeable heads: a micro-foil head for short stubble and smooth finishing, and a trimmer head for longer hair.\n\nThe compact, USB rechargeable lithium-ion battery makes it travel-friendly and convenient for quick touch-ups on the go without requiring water, shaving cream, or soap.',
+        JSON.stringify([
+          'Smart Sensa-Light Technology: Automatically activates micro-vibration upon skin contact for safe, painless hair removal.',
+          '100% Pain-Free & Gentle: No nicks, cuts, razor burns, redness, or irritation—dermatologist recommended for sensitive skin.',
+          'Dual Interchangeable Heads: Includes a micro-foil head for ultra-close smooth finishing and a precision trimmer head for longer hair.',
+          'Full Body & Facial Application: Perfect for upper lip, chin, peach fuzz, underarms, bikini line, arms, and legs.',
+          'USB Rechargeable Battery: Built-in rechargeable Li-ion battery with included USB charging cable—no extra batteries needed.',
+          'Built-in LED Illumination: Integrated light reveals even the finest peach fuzz so you never miss a spot.',
+          'Compact & Portable: Elegant, lightweight pocket-sized design easily slips into your handbag or travel vanity pouch.',
+          'Cash on Delivery Nationwide: 100% genuine product with 7-day replacement warranty and fast delivery across Pakistan.'
+        ]),
+        JSON.stringify({
+          'Product Name': 'Yes Finishing Touch Rechargeable Hair Remover',
+          'Model': 'Yes Instant Pain-Free Shaver Pro',
+          'Power Source': 'USB Rechargeable (Built-in Lithium-Ion Battery)',
+          'Technology': 'Active Sensa-Light Contact Sensor',
+          'Heads Included': '1x Micro-Foil Head + 1x Trimmer Head',
+          'Cleaning': 'Washable Removable Heads with Included Cleaning Brush',
+          'Charging Time': 'Approximately 2 Hours for up to 60 Minutes use',
+          'In The Box': '1x Yes Hair Remover Unit, 1x Micro-Foil Head, 1x Trimmer Head, 1x USB Cable, 1x Cleaning Brush, 1x Manual'
+        }),
+        personalCat ? personalCat.id : 2,
+        'Yes Finishing Touch',
+        'Bestseller',
+        1799,
+        1299,
+        28,
+        85,
+        1,
+        'DK-YES-02',
+        5.0,
+        6,
+        1,
+        1
+      );
+
+      const p2Id = p2Info.lastInsertRowid;
+      [
+        { url: '/uploads/yes-finishing-hair-remover-main.webp', alt: 'Yes Finishing Touch Main', isPrimary: 1, order: 1 },
+        { url: '/uploads/yes-finishing-hair-remover-sensalight.webp', alt: 'Sensalight Tech', isPrimary: 0, order: 2 },
+        { url: '/uploads/yes-finishing-hair-remover-application.webp', alt: 'Application Zones', isPrimary: 0, order: 3 },
+        { url: '/uploads/yes-finishing-hair-remover-heads.webp', alt: 'Interchangeable Heads', isPrimary: 0, order: 4 },
+        { url: '/uploads/yes-finishing-hair-remover-packaging.webp', alt: 'Packaging Box', isPrimary: 0, order: 5 }
+      ].forEach((img) => insertImg.run(p2Id, img.url, img.alt, img.isPrimary, img.order));
+
+      insertVar.run(p2Id, 'color', 'White & Purple Standard', 0, 85, '/uploads/yes-finishing-hair-remover-main.webp');
+
+      [
+        { name: 'Komal Shah', rating: 5, city: 'Lahore', comment: 'Bohot achi cheez hai, face k unwanted hairs bilkul pain-free remove ho jate hain. Light b chal jati hai jisse chote se chota bal b nazar ata hai.', images: ['/uploads/yes-finishing-hair-remover-main.webp'] },
+        { name: 'Nadia Pervez', rating: 5, city: 'Karachi', comment: 'Same as shown in pictures! Daraz se b achi packing aur quality thi. Rechargeable hai to cell change krny ka jhanjhat b nahi. Highly recommended!', images: ['/uploads/yes-finishing-hair-remover-packaging.webp'] },
+        { name: 'Amna Tariq', rating: 5, city: 'Islamabad', comment: 'Bht zabardast shaver hai sensitive skin k liye. Waxing se rashes hoty thay lekin is se skin bilkul soft aur clean ho jati hai.', images: ['/uploads/yes-finishing-hair-remover-heads.webp'] },
+        { name: 'روبینہ کوثر', rating: 5, city: 'Faisalabad', comment: 'بہت ہی زبردست اور کام کی چیز ہے۔ استعمال کرنے میں بہت آسان اور درد بالکل نہیں ہوتا۔ کیش آن ڈلیوری پر جلدی مل گیا۔ شکریہ ڈی کارٹ!', images: [] },
+        { name: 'Saba Rehman', rating: 5, city: 'Multan', comment: 'Delivery bht fast thi (2 days). Upper lips aur chin k liye best hai parlor k bar bar chakar khatam. 5/5 Stars!', images: [] },
+        { name: 'Madiha Khan', rating: 5, city: 'Peshawar', comment: 'Bikini line aur underarms k liye perfect hai, razor cuts se bachat ho jati hai.', images: [] }
+      ].forEach((rev) => insertRev.run(p2Id, rev.name, rev.rating, rev.comment, rev.city, JSON.stringify(rev.images)));
+    }
+
+    // Product 3: Nova Hair Straightener & Curler 2-in-1
+    if (!db.prepare("SELECT id FROM products WHERE slug = 'nova-2-in-1-hair-straightener-curler'").get()) {
+      const p3Info = insertProd.run(
+      'Nova Hair Straightener & Curler 2-in-1 for Women (Pink) | Electric Hair Styling Tool for Smooth & Wavy Hair',
+      'nova-2-in-1-hair-straightener-curler',
+      'Dual-action ceramic technology: sleek straight silk or glamorous beach waves in under 5 minutes.',
+      'Upgrade your daily hair styling routine with the Nova 2-in-1 Hair Straightener and Curler (NHC-2009). Specially engineered for modern Pakistani women, this versatile electric styling tool seamlessly transitions from a precision ceramic flat iron straightener to a professional curling wand with a single switch.\n\nFeaturing advanced ceramic tourmaline heating plates, it delivers rapid, uniform heat distribution that effortlessly glides through hair without pulling, snagging, or causing heat damage. The negative ion infusion seals hair cuticles, locking in essential moisture to eliminate frizz and flyaways while imparting a glossy, salon-grade mirror shine.\n\nWith its lightweight, travel-friendly ergonomic barrel and 360° swivel tangle-free power cord, you can effortlessly create sleek bone-straight looks, voluminous root lifts, or bouncy spiral curls anywhere. Ideal for everyday grooming, university, office touch-ups, and special wedding occasions across Pakistan.',
       JSON.stringify([
-        'Smart Sensa-Light Technology: Automatically activates micro-vibration upon skin contact for safe, painless hair removal.',
-        '100% Pain-Free & Gentle: No nicks, cuts, razor burns, redness, or irritation—dermatologist recommended for sensitive skin.',
-        'Dual Interchangeable Heads: Includes a micro-foil head for ultra-close smooth finishing and a precision trimmer head for longer hair.',
-        'Full Body & Facial Application: Perfect for upper lip, chin, peach fuzz, underarms, bikini line, arms, and legs.',
-        'USB Rechargeable Battery: Built-in rechargeable Li-ion battery with included USB charging cable—no extra batteries needed.',
-        'Built-in LED Illumination: Integrated light reveals even the finest peach fuzz so you never miss a spot.',
-        'Compact & Portable: Elegant, lightweight pocket-sized design easily slips into your handbag or travel vanity pouch.',
-        'Cash on Delivery Nationwide: 100% genuine product with 7-day replacement warranty and fast delivery across Pakistan.'
+        '2-in-1 Dual Styling Functionality: Seamlessly switch between ceramic straightening and spiral wave curling with a single one-click lock mechanism.',
+        'Ceramic Tourmaline Coated Plates: Distributes heat evenly without snagging or pulling, protecting natural hair proteins from heat damage.',
+        'Rapid 30-Second Heat-Up: High-efficiency PTC heating element reaches optimal styling temperature (190°C) in under 30 seconds for quick morning touch-ups.',
+        'Anti-Frizz Negative Ion Conditioning: Smooths down unruly cuticles, neutralizes static electricity, and leaves hair silky and luminous.',
+        'Compact & Handbag Friendly: Lightweight ergonomic design slips easily into your purse, backpack, or vanity travel bag.',
+        '360° Anti-Tangle Swivel Cord: Full maneuverability at any angle without cord twisting or tangling.',
+        'Universal Safe 220V Voltage: Plug & play standard Pakistani 2-pin socket compatibility—no adapter needed.',
+        'Cash on Delivery Nationwide: 100% genuine Nova styling tool with 7-day doorstep replacement warranty across Pakistan.'
       ]),
       JSON.stringify({
-        'Product Name': 'Yes Finishing Touch Rechargeable Hair Remover',
-        'Model': 'Yes Instant Pain-Free Shaver Pro',
-        'Power Source': 'USB Rechargeable (Built-in Lithium-Ion Battery)',
-        'Technology': 'Active Sensa-Light Contact Sensor',
-        'Heads Included': '1x Micro-Foil Head + 1x Trimmer Head',
-        'Cleaning': 'Washable Removable Heads with Included Cleaning Brush',
-        'Charging Time': 'Approximately 2 Hours for up to 60 Minutes use',
-        'In The Box': '1x Yes Hair Remover Unit, 1x Micro-Foil Head, 1x Trimmer Head, 1x USB Cable, 1x Cleaning Brush, 1x Manual'
+        'Product Name': 'Nova 2-in-1 Hair Straightener & Curler',
+        'Model': 'NHC-2009 Pink Edition',
+        'Plate Material': 'Ceramic Tourmaline Nano-Glaze',
+        'Temperature Range': 'Up to 190°C Constant Heat Protection',
+        'Heating Technology': 'Instant PTC Rapid Heat Engine',
+        'Power / Voltage': '35W | 220V-240V ~ 50Hz (Standard PK Socket)',
+        'Cord Feature': '360° Swivel Anti-Winding Power Cord',
+        'In The Box': '1x Nova 2-in-1 Hair Styler (Pink), 1x User Manual, 1x Official Warranty Card'
       }),
-      personalCat ? personalCat.id : 2,
-      'Yes Finishing Touch',
-      'Bestseller',
-      1799,
-      1299,
-      28,
-      85,
+      hairCat ? hairCat.id : 1,
+      'Nova Professional',
+      'Top Pick',
+      1699,
+      1099,
+      35,
+      90,
       1,
-      'DK-YES-02',
-      5.0,
-      6,
-      1,
-      1
-    );
-
-    const p2Id = p2Info.lastInsertRowid;
-    [
-      { url: '/uploads/yes-finishing-hair-remover-main.webp', alt: 'Yes Finishing Touch Main', isPrimary: 1, order: 1 },
-      { url: '/uploads/yes-finishing-hair-remover-sensalight.webp', alt: 'Sensalight Tech', isPrimary: 0, order: 2 },
-      { url: '/uploads/yes-finishing-hair-remover-application.webp', alt: 'Application Zones', isPrimary: 0, order: 3 },
-      { url: '/uploads/yes-finishing-hair-remover-heads.webp', alt: 'Interchangeable Heads', isPrimary: 0, order: 4 },
-      { url: '/uploads/yes-finishing-hair-remover-packaging.webp', alt: 'Packaging Box', isPrimary: 0, order: 5 }
-    ].forEach((img) => insertImg.run(p2Id, img.url, img.alt, img.isPrimary, img.order));
-
-    insertVar.run(p2Id, 'color', 'White & Purple Standard', 0, 85, '/uploads/yes-finishing-hair-remover-main.webp');
-
-    [
-      { name: 'Komal Shah', rating: 5, city: 'Lahore', comment: 'Bohot achi cheez hai, face k unwanted hairs bilkul pain-free remove ho jate hain. Light b chal jati hai jisse chote se chota bal b nazar ata hai.', images: ['/uploads/yes-finishing-hair-remover-main.webp'] },
-      { name: 'Nadia Pervez', rating: 5, city: 'Karachi', comment: 'Same as shown in pictures! Daraz se b achi packing aur quality thi. Rechargeable hai to cell change krny ka jhanjhat b nahi. Highly recommended!', images: ['/uploads/yes-finishing-hair-remover-packaging.webp'] },
-      { name: 'Amna Tariq', rating: 5, city: 'Islamabad', comment: 'Bht zabardast shaver hai sensitive skin k liye. Waxing se rashes hoty thay lekin is se skin bilkul soft aur clean ho jati hai.', images: ['/uploads/yes-finishing-hair-remover-heads.webp'] },
-      { name: 'روبینہ کوثر', rating: 5, city: 'Faisalabad', comment: 'بہت ہی زبردست اور کام کی چیز ہے۔ استعمال کرنے میں بہت آسان اور درد بالکل نہیں ہوتا۔ کیش آن ڈلیوری پر جلدی مل گیا۔ شکریہ ڈی کارٹ!', images: [] },
-      { name: 'Saba Rehman', rating: 5, city: 'Multan', comment: 'Delivery bht fast thi (2 days). Upper lips aur chin k liye best hai parlor k bar bar chakar khatam. 5/5 Stars!', images: [] },
-      { name: 'Madiha Khan', rating: 5, city: 'Peshawar', comment: 'Bikini line aur underarms k liye perfect hai, razor cuts se bachat ho jati hai.', images: [] }
-    ].forEach((rev) => insertRev.run(p2Id, rev.name, rev.rating, rev.comment, rev.city, JSON.stringify(rev.images)));
-
-    // Product 3: Kemei Rechargeable Body Hair Remover
-    const p3Info = insertProd.run(
-      'Kemie Rechargeable Body Hair Remover – Cordless Electric Hair Remover for Gentle At-Home Touch-Ups',
-      'kemei-body-hair-remover',
-      'Cordless electric hair remover engineered for painless, gentle grooming across face, arms, legs, and bikini line.',
-      'Experience salon-level smoothness at home with the Kemie Rechargeable Cordless Body Hair Remover. Engineered specifically for modern women seeking a gentle, irritation-free grooming solution, this cordless electric shaver glides effortlessly across contours to remove unwanted hair quickly without cuts, pulling, or razor burns.\n\nFeaturing an ergonomic curved grip and hypoallergenic micro-foil precision blades, it is safe and comfortable for multi-area grooming including the face, upper lip, arms, legs, underarms, and sensitive bikini zones. The USB rechargeable battery system provides powerful cordless performance at home or on the go, eliminating the hassle of disposable batteries.\n\nWith a detachable, washable grooming head and ultra-compact travel design, the Kemie Body Hair Remover is the ultimate essential for quick daily touch-ups and flawless skin.',
-      JSON.stringify([
-        'Cordless Gentle Grooming: Painless electric shaver designed for sensitive skin without pulling, nicks, or redness.',
-        'Multi-Area Body & Facial Care: Suitable for face, upper lip, chin, arms, legs, underarms, and bikini area.',
-        'USB Rechargeable Battery: Built-in high-capacity rechargeable battery for convenient cordless use anywhere.',
-        'Hypoallergenic Stainless Blades: Ultra-thin precision foil protects delicate skin while cutting hair close to the surface.',
-        'Ergonomic Curved Grip: Fits naturally in hand for maximum control and comfortable maneuvering around curves.',
-        'Easy to Clean & Maintain: Detachable trimming head easily rinses under water to maintain hygiene.',
-        'Compact & Travel-Ready: Lightweight, sleek pocket size easily fits into cosmetic pouches and handbags.',
-        'Cash on Delivery Nationwide: 100% genuine guaranteed with fast 2-4 day express delivery across Pakistan.'
-      ]),
-      JSON.stringify({
-        'Product Name': 'Kemei Rechargeable Body Hair Remover',
-        'Model': 'KM-3018 Electric Lady Shaver',
-        'Color Edition': 'Purple & White Standard',
-        'Power Source': 'USB Rechargeable Battery',
-        'Charging Time': 'Approximately 2 Hours',
-        'Operating Time': 'Up to 50 Minutes Cordless Grooming',
-        'Blade Type': 'Hypoallergenic Stainless Steel Foil',
-        'Cleaning': 'Detachable Washable Head with Cleaning Brush',
-        'In The Box': '1x Kemei Hair Remover, 1x Protective Cap, 1x USB Cable, 1x Cleaning Brush, 1x User Manual'
-      }),
-      personalCat ? personalCat.id : 2,
-      'Kemei',
-      'Top Rated',
-      2899,
-      2299,
-      21,
-      60,
-      1,
-      'DK-KEMEI-03',
+      'DK-NOVA-03',
       5.0,
       6,
       1,
@@ -308,27 +311,25 @@ export function seedData() {
 
     const p3Id = p3Info.lastInsertRowid;
     [
-      { url: '/uploads/kemei-hair-remover-main.webp', alt: 'Kemei Main View', isPrimary: 1, order: 1 },
-      { url: '/uploads/kemei-hair-remover-features.webp', alt: 'Feature Highlights', isPrimary: 0, order: 2 },
-      { url: '/uploads/kemei-hair-remover-cordless.webp', alt: 'Cordless USB System', isPrimary: 0, order: 3 },
-      { url: '/uploads/kemei-hair-remover-blades.webp', alt: 'Precision Foil Blades', isPrimary: 0, order: 4 },
-      { url: '/uploads/kemei-hair-remover-lifestyle.webp', alt: 'Multi-Area Grooming', isPrimary: 0, order: 5 },
-      { url: '/uploads/kemei-hair-remover-packaging.webp', alt: 'Product Packaging', isPrimary: 0, order: 6 }
+      { url: '/uploads/nova-2-in-1-hair-straightener-curler-main.webp', alt: 'Nova 2-in-1 Main View', isPrimary: 1, order: 1 },
+      { url: '/uploads/nova-2-in-1-hair-straightener-curler-plates.webp', alt: 'Ceramic Plates', isPrimary: 0, order: 2 },
+      { url: '/uploads/nova-2-in-1-hair-straightener-curler-curling.webp', alt: 'Curling Barrel Action', isPrimary: 0, order: 3 },
+      { url: '/uploads/nova-2-in-1-hair-straightener-curler-features.webp', alt: 'Key Features & Lock', isPrimary: 0, order: 4 },
+      { url: '/uploads/nova-2-in-1-hair-straightener-curler-packaging.webp', alt: 'Box Packaging', isPrimary: 0, order: 5 }
     ].forEach((img) => insertImg.run(p3Id, img.url, img.alt, img.isPrimary, img.order));
 
-    insertVar.run(p3Id, 'color', 'Purple & White Standard', 0, 60, '/uploads/kemei-hair-remover-main.webp');
+    insertVar.run(p3Id, 'color', 'Pink & Silver Pro', 0, 90, '/uploads/nova-2-in-1-hair-straightener-curler-main.webp');
 
     [
-      { name: 'Sobia Akhtar', rating: 5, city: 'Lahore', comment: 'Bohot zabardast product hai! Bilkul pain nahi hota aur skin bohot smooth ho jati hai. Packing aur delivery b bohot fast thi.', images: ['/uploads/kemei-hair-remover-unboxing1.webp'] },
-      { name: 'Mehak Fatima', rating: 5, city: 'Karachi', comment: 'Same as picture and original Kemei! Rechargeable hai aur battery timing b achi hai. 2 din me deliver hogya. Highly recommended!', images: ['/uploads/kemei-hair-remover-unboxing2.webp'] },
-      { name: 'Hafsa Naveed', rating: 5, city: 'Islamabad', comment: 'Face aur arms k liye best device hai. Waxing se rashes hoty thay lekin is se skin bilkul saaf ho jati hai bina kisi dard k.', images: [] },
-      { name: 'اقصیٰ رحمان', rating: 5, city: 'Faisalabad', comment: 'بہت ہی معیاری اور مفید پراڈکٹ ہے۔ چارجنگ بہت جلدی ہوتی ہے اور استعمال میں بہت آرام دہ ہے۔ ڈی کارٹ کا بہت شکریہ۔', images: [] },
-      { name: 'Bushra Malik', rating: 5, city: 'Rawalpindi', comment: '100% original product ha. Compact hai to handbag me asani se aa jata hai travel k liye.', images: [] },
-      { name: 'Tayyaba Noor', rating: 5, city: 'Multan', comment: 'Delivery bohat fast thi aur parcel achi tarah pack tha. 5/5 Stars for quality and service!', images: [] }
+      { name: 'Hina Qureshi', rating: 5, city: 'Lahore', comment: 'Bohot zabardast straightener aur curler hai! Daily college k liye use krti hu, 2 minute me heat ho jata hai aur hair bilkul straight ho jatay hain. 100% recommended for this price!', images: ['/uploads/nova-2-in-1-hair-straightener-curler-main.webp'] },
+      { name: 'Sana Malik', rating: 5, city: 'Karachi', comment: 'Same as shown in pictures! Daraz se b achi aur fast delivery mili 2 din me parcel pohanch gya. Curler bht achay soft curls banata hai. Packing bht secure thi.', images: ['/uploads/nova-2-in-1-hair-straightener-curler-packaging.webp'] },
+      { name: 'Aiman Sheikh', rating: 5, city: 'Islamabad', comment: 'Value for money product hai. Light weight hai to travel me carry krna bht easy hai. Heat bilkul perfect hai baal jalte nahi hain.', images: ['/uploads/nova-2-in-1-hair-straightener-curler-plates.webp'] },
+      { name: 'ثنا خان', rating: 5, city: 'Rawalpindi', comment: 'بہت ہی شاندار پراڈکٹ ہے۔ سائز بہت مناسب ہے اور سیدھے اور گھنگھریالے دونوں طرح کے بالوں کے لیے بہترین کام کرتا ہے۔ کیش آن ڈلیوری پر جلدی مل گیا۔ شکریہ ڈی کارٹ!', images: [] },
+      { name: 'Mahnoor Raza', rating: 5, city: 'Faisalabad', comment: 'Bht acha straightener ha, price k hisab se best quality ha. Office jane se pehle jaldi se hair set ho jatay hain.', images: [] },
+      { name: 'Bushra Ali', rating: 5, city: 'Multan', comment: 'Original Nova NHC-2009 styler hai. Pink color bohot pyara hai aur curls bohat achay banatay hain.', images: [] }
     ].forEach((rev) => insertRev.run(p3Id, rev.name, rev.rating, rev.comment, rev.city, JSON.stringify(rev.images)));
+    }
 
     console.log('✅ Official products & reviews seeded successfully.');
-  }
-
   console.log('Database seeding process completed.');
 }
