@@ -264,14 +264,17 @@ export const updateProduct = (req, res) => {
 export const deleteProduct = (req, res) => {
   try {
     const { id } = req.params;
+    db.pragma('foreign_keys = OFF');
     db.prepare('DELETE FROM order_items WHERE product_id = ?').run(id);
     db.prepare('DELETE FROM product_images WHERE product_id = ?').run(id);
     db.prepare('DELETE FROM product_variants WHERE product_id = ?').run(id);
     db.prepare('DELETE FROM reviews WHERE product_id = ?').run(id);
     db.prepare('DELETE FROM wishlist WHERE product_id = ?').run(id);
     db.prepare('DELETE FROM products WHERE id = ?').run(id);
+    db.pragma('foreign_keys = ON');
     res.json({ success: true, message: 'Product deleted.' });
   } catch (error) {
+    db.pragma('foreign_keys = ON');
     console.error('deleteProduct error:', error);
     res.status(500).json({ success: false, message: 'Failed to delete product.' });
   }
@@ -279,6 +282,7 @@ export const deleteProduct = (req, res) => {
 
 export const clearAllProducts = (req, res) => {
   try {
+    db.pragma('foreign_keys = OFF');
     db.exec(`
       DELETE FROM order_items;
       DELETE FROM orders;
@@ -288,8 +292,10 @@ export const clearAllProducts = (req, res) => {
       DELETE FROM product_images;
       DELETE FROM products;
     `);
+    db.pragma('foreign_keys = ON');
     res.json({ success: true, message: 'All products cleared successfully.' });
   } catch (error) {
+    db.pragma('foreign_keys = ON');
     console.error('Clear products error:', error);
     res.status(500).json({ success: false, message: 'Failed to clear products.' });
   }
