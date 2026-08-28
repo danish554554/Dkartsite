@@ -28,12 +28,20 @@ export async function fetchApi(endpoint, options = {}) {
   }
 }
 
+function buildQueryString(params = {}) {
+  const cleanParams = {};
+  Object.entries(params).forEach(([key, val]) => {
+    if (val !== undefined && val !== null && val !== '' && val !== 'undefined') {
+      cleanParams[key] = val;
+    }
+  });
+  const qs = new URLSearchParams(cleanParams).toString();
+  return qs ? `?${qs}` : '';
+}
+
 export const api = {
   // Products
-  getProducts: (params = {}) => {
-    const query = new URLSearchParams(params).toString();
-    return fetchApi(`/products?${query}`);
-  },
+  getProducts: (params = {}) => fetchApi(`/products${buildQueryString(params)}`),
   getProductBySlug: (slug) => fetchApi(`/products/${slug}`),
   getCategories: () => fetchApi('/categories'),
   getBanners: () => fetchApi('/banners'),
@@ -52,10 +60,7 @@ export const api = {
     body: JSON.stringify(orderData)
   }),
   getOrderById: (id) => fetchApi(`/orders/${id}`),
-  trackOrder: (orderId, phone) => {
-    const query = new URLSearchParams({ orderId, ...(phone ? { phone } : {}) }).toString();
-    return fetchApi(`/orders/track?${query}`);
-  },
+  trackOrder: (orderId, phone) => fetchApi(`/orders/track${buildQueryString({ orderId, phone })}`),
   getUserOrders: () => fetchApi('/orders/user'),
 
   // Auth
@@ -87,10 +92,7 @@ export const api = {
   deleteAdminProduct: (id) => fetchApi(`/admin/products/${id}`, {
     method: 'DELETE'
   }),
-  getAdminOrders: (params = {}) => {
-    const query = new URLSearchParams(params).toString();
-    return fetchApi(`/admin/orders?${query}`);
-  },
+  getAdminOrders: (params = {}) => fetchApi(`/admin/orders${buildQueryString(params)}`),
   updateAdminOrderStatus: (id, statusData) => fetchApi(`/admin/orders/${id}/status`, {
     method: 'PUT',
     body: JSON.stringify(statusData)

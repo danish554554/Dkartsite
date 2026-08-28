@@ -277,12 +277,12 @@ export const getAllOrders = (req, res) => {
     let query = 'SELECT * FROM orders WHERE 1=1';
     const params = [];
 
-    if (status && status !== 'All') {
+    if (status && status !== 'All' && status !== 'undefined') {
       query += ' AND order_status = ?';
       params.push(status);
     }
 
-    if (search) {
+    if (search && search !== 'undefined' && search.trim() !== '') {
       query += ' AND (id LIKE ? OR customer_name LIKE ? OR customer_phone LIKE ?)';
       const s = `%${search.trim()}%`;
       params.push(s, s, s);
@@ -291,14 +291,25 @@ export const getAllOrders = (req, res) => {
     query += ' ORDER BY created_at DESC';
 
     const orders = db.prepare(query).all(...params);
-    const fullOrders = orders.map((o) => ({
-      ...o,
-      shipping_address: JSON.parse(o.shipping_address),
-      items: db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(o.id)
-    }));
+    const fullOrders = orders.map((o) => {
+      let parsedAddress = o.shipping_address;
+      if (typeof o.shipping_address === 'string') {
+        try {
+          parsedAddress = JSON.parse(o.shipping_address);
+        } catch {
+          parsedAddress = { address: o.shipping_address };
+        }
+      }
+      return {
+        ...o,
+        shipping_address: parsedAddress,
+        items: db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(o.id)
+      };
+    });
 
     res.json({ success: true, data: fullOrders });
   } catch (error) {
+    console.error('getAllOrders error:', error);
     res.status(500).json({ success: false, message: 'Failed to retrieve orders.' });
   }
 };
