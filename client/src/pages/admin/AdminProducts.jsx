@@ -240,6 +240,23 @@ export default function AdminProducts() {
     }
   };
 
+  // Clear All Demo Products
+  const handleClearAll = async () => {
+    if (!window.confirm('Are you sure you want to clear all products? This will leave your store completely fresh so you can add real products manually.')) return;
+    try {
+      setLoading(true);
+      const res = await api.clearAllProducts();
+      if (res.success) {
+        addToast('All demo products cleared! You can now add your real products.', 'success');
+        loadData();
+      }
+    } catch (err) {
+      addToast(err.message || 'Failed to clear products', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Submit Handler
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -317,13 +334,25 @@ export default function AdminProducts() {
           </p>
         </div>
 
-        <button
-          onClick={handleOpenAdd}
-          className="px-5 py-2.5 bg-dkart-blue hover:bg-dkart-blue-hover text-white rounded-xl text-xs font-bold shadow-dkart flex items-center gap-2 transition active:scale-95"
-        >
-          <Plus size={16} />
-          <span>Add New Product</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {products.length > 0 && (
+            <button
+              onClick={handleClearAll}
+              className="px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-bold transition flex items-center gap-1.5 active:scale-95"
+              title="Clear all demo products"
+            >
+              <Trash2 size={15} />
+              <span>Clear Demo Products</span>
+            </button>
+          )}
+          <button
+            onClick={handleOpenAdd}
+            className="px-5 py-2.5 bg-dkart-blue hover:bg-dkart-blue-hover text-white rounded-xl text-xs font-bold shadow-dkart flex items-center gap-2 transition active:scale-95"
+          >
+            <Plus size={16} />
+            <span>Add New Product</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter and Search Bar */}

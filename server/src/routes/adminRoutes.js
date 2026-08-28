@@ -5,6 +5,7 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  clearAllProducts,
   getAllOrders,
   updateOrderStatus,
   getInventory,
@@ -33,6 +34,7 @@ router.get('/analytics', getAnalytics);
 // Product Management
 router.get('/products', getAllProducts);
 router.post('/products', createProduct);
+router.delete('/products/clear-all', clearAllProducts);
 router.put('/products/:id', updateProduct);
 router.delete('/products/:id', deleteProduct);
 

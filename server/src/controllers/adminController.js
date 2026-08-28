@@ -271,6 +271,21 @@ export const deleteProduct = (req, res) => {
   }
 };
 
+export const clearAllProducts = (req, res) => {
+  try {
+    db.exec(`
+      DELETE FROM product_variants;
+      DELETE FROM product_images;
+      DELETE FROM reviews;
+      DELETE FROM products;
+    `);
+    res.json({ success: true, message: 'All products cleared successfully.' });
+  } catch (error) {
+    console.error('Clear products error:', error);
+    res.status(500).json({ success: false, message: 'Failed to clear products.' });
+  }
+};
+
 export const getAllOrders = (req, res) => {
   try {
     const { status, search } = req.query;

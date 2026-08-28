@@ -92,6 +92,9 @@ export const api = {
   deleteAdminProduct: (id) => fetchApi(`/admin/products/${id}`, {
     method: 'DELETE'
   }),
+  clearAllProducts: () => fetchApi('/admin/products/clear-all', {
+    method: 'DELETE'
+  }),
   getAdminOrders: (params = {}) => fetchApi(`/admin/orders${buildQueryString(params)}`),
   updateAdminOrderStatus: (id, statusData) => fetchApi(`/admin/orders/${id}/status`, {
     method: 'PUT',
