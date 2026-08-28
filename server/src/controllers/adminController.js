@@ -264,9 +264,15 @@ export const updateProduct = (req, res) => {
 export const deleteProduct = (req, res) => {
   try {
     const { id } = req.params;
+    db.prepare('DELETE FROM order_items WHERE product_id = ?').run(id);
+    db.prepare('DELETE FROM product_images WHERE product_id = ?').run(id);
+    db.prepare('DELETE FROM product_variants WHERE product_id = ?').run(id);
+    db.prepare('DELETE FROM reviews WHERE product_id = ?').run(id);
+    db.prepare('DELETE FROM wishlist WHERE product_id = ?').run(id);
     db.prepare('DELETE FROM products WHERE id = ?').run(id);
     res.json({ success: true, message: 'Product deleted.' });
   } catch (error) {
+    console.error('deleteProduct error:', error);
     res.status(500).json({ success: false, message: 'Failed to delete product.' });
   }
 };
@@ -274,9 +280,12 @@ export const deleteProduct = (req, res) => {
 export const clearAllProducts = (req, res) => {
   try {
     db.exec(`
+      DELETE FROM order_items;
+      DELETE FROM orders;
+      DELETE FROM wishlist;
+      DELETE FROM reviews;
       DELETE FROM product_variants;
       DELETE FROM product_images;
-      DELETE FROM reviews;
       DELETE FROM products;
     `);
     res.json({ success: true, message: 'All products cleared successfully.' });
