@@ -5,15 +5,24 @@ export function seedData() {
   initDatabase();
 
   // 1. Ensure Admin User Exists
-  const adminUser = db.prepare('SELECT id FROM users WHERE email = ?').get('admin@dkart.pk');
-  if (!adminUser) {
-    const salt = bcrypt.genSaltSync(10);
-    const adminPasswordHash = bcrypt.hashSync('admin123', salt);
+  const salt = bcrypt.genSaltSync(10);
+  const adminPasswordHash = bcrypt.hashSync('admin123', salt);
+
+  const mainAdmin = db.prepare('SELECT id FROM users WHERE email = ?').get('admindkart@gmail.com');
+  if (!mainAdmin) {
+    db.prepare(`
+      INSERT INTO users (name, email, password_hash, phone, role)
+      VALUES (?, ?, ?, ?, ?)
+    `).run('Dkart Admin', 'admindkart@gmail.com', adminPasswordHash, '+92 342 5097760', 'admin');
+    console.log('✅ Main Admin user ready: admindkart@gmail.com / admin123');
+  }
+
+  const legacyAdmin = db.prepare('SELECT id FROM users WHERE email = ?').get('admin@dkart.pk');
+  if (!legacyAdmin) {
     db.prepare(`
       INSERT INTO users (name, email, password_hash, phone, role)
       VALUES (?, ?, ?, ?, ?)
     `).run('Dkart Admin', 'admin@dkart.pk', adminPasswordHash, '+92 342 5097760', 'admin');
-    console.log('✅ Admin user ready: admin@dkart.pk / admin123');
   }
 
   // 2. Ensure Categories Exist

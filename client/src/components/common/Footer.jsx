@@ -41,7 +41,7 @@ export default function Footer() {
               </div>
               <div className="flex items-center gap-2">
                 <Mail size={15} className="text-dkart-orange flex-shrink-0" />
-                <span>Official Inquiries: care@dkart.pk</span>
+                <span>Official Inquiries: admindkart@gmail.com</span>
               </div>
             </div>
           </div>

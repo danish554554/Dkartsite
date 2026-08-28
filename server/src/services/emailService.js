@@ -313,8 +313,8 @@ function generateAdminEmailHtml(order, items) {
 export async function sendOrderEmails(order, items) {
   try {
     const client = getTransporter();
-    const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER || 'admin@dkart.pk';
-    const sender = process.env.SMTP_FROM || `"Dkart.pk" <${process.env.SMTP_USER || 'orders@dkart.pk'}>`;
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER || 'admindkart@gmail.com';
+    const sender = process.env.SMTP_FROM || `"Dkart.pk" <${process.env.SMTP_USER || 'admindkart@gmail.com'}>`;
 
     const customerHtml = generateCustomerEmailHtml(order, items);
     const adminHtml = generateAdminEmailHtml(order, items);

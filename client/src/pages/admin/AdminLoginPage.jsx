@@ -68,7 +68,7 @@ export default function AdminLoginPage() {
               <div className="relative">
                 <input
                   type="email"
-                  placeholder="admin@dkart.pk"
+                  placeholder="admindkart@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full p-3.5 pl-10 bg-[#12141A] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-dkart-blue text-xs font-medium"
