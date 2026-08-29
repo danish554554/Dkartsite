@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import { ToastProvider } from './context/ToastContext';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
@@ -97,6 +98,7 @@ export default function App() {
           <WishlistProvider>
             <BrowserRouter>
               <AppLayout />
+              <Analytics />
             </BrowserRouter>
           </WishlistProvider>
         </CartProvider>
