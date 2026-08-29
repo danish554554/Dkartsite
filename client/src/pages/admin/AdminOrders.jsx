@@ -611,46 +611,174 @@ export default function AdminOrders() {
         )}
       </div>
 
-      {/* 5. PRINTABLE THERMAL PACKING SLIP (Hidden from Screen, Visible on Print) */}
+      {/* 5. PROFESSIONAL COURIER DISPATCH SHIPPING LABEL (1-PAGE HIGH RESOLUTION PRINT) */}
       {selectedPrintOrder && (
-        <div className="hidden print:block print:fixed print:inset-0 print:bg-white print:p-8 print:z-[9999]">
-          <div className="max-w-md mx-auto border-2 border-black p-5 text-black font-mono space-y-4">
-            <div className="text-center border-b-2 border-black pb-3">
-              <h2 className="text-xl font-black">DKART.PK DISPATCH FLYER</h2>
-              <p className="text-xs">Cash on Delivery Courier Manifest</p>
-              <p className="text-lg font-black mt-1">ORDER #{selectedPrintOrder.id}</p>
-              <p className="text-xs">Tracking: {selectedPrintOrder.tracking_number}</p>
+        <div id="printable-dispatch-label" className="hidden print:block print:w-full print:bg-white text-black font-sans">
+          <style>{`
+            @media print {
+              @page { size: A4 portrait; margin: 8mm; }
+              body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+              body * { visibility: hidden; }
+              #printable-dispatch-label, #printable-dispatch-label * { visibility: visible; }
+              #printable-dispatch-label {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                max-width: 190mm;
+                margin: 0 auto;
+                page-break-after: avoid;
+                page-break-inside: avoid;
+              }
+            }
+          `}</style>
+
+          <div style={{ border: '3px solid #000', padding: '16px', borderRadius: '4px', backgroundColor: '#fff' }}>
+            {/* Top Header with Brand & Barcode */}
+            <table style={{ width: '100%', borderBottom: '2px solid #000', paddingBottom: '12px', marginBottom: '12px' }}>
+              <tbody>
+                <tr>
+                  <td style={{ verticalAlign: 'top', width: '55%' }}>
+                    <div style={{ fontSize: '26px', fontWeight: '900', letterSpacing: '-0.5px', color: '#000', textTransform: 'uppercase' }}>
+                      DKART.PK
+                    </div>
+                    <div style={{ fontSize: '11px', fontWeight: '700', color: '#333', marginTop: '2px' }}>
+                      Official Express E-Commerce Courier Manifest
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#555', marginTop: '2px' }}>
+                      Helpline: <strong>+92 342 5097760</strong> | Web: <strong>www.dkart.pk</strong>
+                    </div>
+                  </td>
+                  <td style={{ verticalAlign: 'top', textAlign: 'right', width: '45%' }}>
+                    <div style={{ display: 'inline-block', textAlign: 'center' }}>
+                      <div style={{ fontSize: '20px', fontWeight: '900', letterSpacing: '1px', border: '2px solid #000', padding: '4px 12px', background: '#000', color: '#fff', borderRadius: '4px' }}>
+                        ORDER #{selectedPrintOrder.id}
+                      </div>
+                      <div style={{ fontSize: '24px', letterSpacing: '3px', fontWeight: '900', fontFamily: 'monospace', margin: '4px 0 2px 0' }}>
+                        ||| | | |||| ||| || | ||||
+                      </div>
+                      <div style={{ fontSize: '11px', fontWeight: '700', color: '#333' }}>
+                        Tracking: {selectedPrintOrder.tracking_number || 'TCS-EXPRESS'}
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            {/* Two-Column Grid: Shipper vs Consignee */}
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '14px', border: '2px solid #000' }}>
+              <thead>
+                <tr style={{ background: '#f0f0f0', borderBottom: '2px solid #000' }}>
+                  <th style={{ width: '50%', textAlign: 'left', padding: '6px 10px', fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', borderRight: '2px solid #000' }}>
+                    1. SHIP FROM (SENDER / RETURN TO):
+                  </th>
+                  <th style={{ width: '50%', textAlign: 'left', padding: '6px 10px', fontSize: '11px', fontWeight: '900', textTransform: 'uppercase' }}>
+                    2. DELIVER TO (CONSIGNEE / RECIPIENT):
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{ verticalAlign: 'top', padding: '10px', borderRight: '2px solid #000', fontSize: '12px', lineHeight: '1.4' }}>
+                    <strong style={{ fontSize: '13px' }}>DKART.PK Fulfillment Hub</strong><br />
+                    Express Logistics Center<br />
+                    Islamabad / Lahore, Pakistan<br />
+                    <strong>Contact Helpline:</strong> 0342-5097760<br />
+                    <strong>Email:</strong> admindkart@gmail.com
+                  </td>
+                  <td style={{ verticalAlign: 'top', padding: '10px', fontSize: '12px', lineHeight: '1.4', background: '#fafafa' }}>
+                    <div style={{ fontSize: '15px', fontWeight: '900', color: '#000', marginBottom: '2px' }}>
+                      {selectedPrintOrder.customer_name}
+                    </div>
+                    <div style={{ fontSize: '14px', fontWeight: '900', color: '#000', marginBottom: '4px' }}>
+                      📞 {selectedPrintOrder.customer_phone}
+                    </div>
+                    <div style={{ color: '#222' }}>
+                      {selectedPrintOrder.shipping_address?.streetAddress || selectedPrintOrder.shipping_address?.street_address},{' '}
+                      {selectedPrintOrder.shipping_address?.area ? `${selectedPrintOrder.shipping_address.area}, ` : ''}
+                      <strong style={{ fontSize: '13px' }}>{selectedPrintOrder.shipping_address?.city}</strong>, {selectedPrintOrder.shipping_address?.province}
+                    </div>
+                    <div style={{ marginTop: '6px' }}>
+                      <span style={{ display: 'inline-block', border: '1.5px solid #000', padding: '2px 8px', fontSize: '11px', fontWeight: '900', background: '#000', color: '#fff', borderRadius: '3px' }}>
+                        DESTINATION: {selectedPrintOrder.shipping_address?.city?.toUpperCase()}
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            {/* Itemized Contents Table */}
+            <div style={{ marginBottom: '14px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', border: '2px solid #000' }}>
+                <thead>
+                  <tr style={{ background: '#f0f0f0', borderBottom: '2px solid #000' }}>
+                    <th style={{ width: '8%', padding: '6px 8px', fontSize: '11px', fontWeight: '900', textAlign: 'center', borderRight: '1px solid #000' }}>#</th>
+                    <th style={{ width: '62%', padding: '6px 8px', fontSize: '11px', fontWeight: '900', textAlign: 'left', borderRight: '1px solid #000' }}>ITEM DESCRIPTION & VARIANT</th>
+                    <th style={{ width: '10%', padding: '6px 8px', fontSize: '11px', fontWeight: '900', textAlign: 'center', borderRight: '1px solid #000' }}>QTY</th>
+                    <th style={{ width: '20%', padding: '6px 8px', fontSize: '11px', fontWeight: '900', textAlign: 'right' }}>AMOUNT (PKR)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedPrintOrder.items?.map((item, idx) => (
+                    <tr key={idx} style={{ borderBottom: '1px solid #ddd' }}>
+                      <td style={{ padding: '8px', fontSize: '11px', textAlign: 'center', fontWeight: '700', borderRight: '1px solid #000' }}>{idx + 1}</td>
+                      <td style={{ padding: '8px', fontSize: '12px', borderRight: '1px solid #000' }}>
+                        <strong>{item.title}</strong>
+                        {item.variant_name && <div style={{ fontSize: '11px', color: '#555' }}>Variant: {item.variant_name}</div>}
+                      </td>
+                      <td style={{ padding: '8px', fontSize: '12px', textAlign: 'center', fontWeight: '900', borderRight: '1px solid #000' }}>{item.quantity}</td>
+                      <td style={{ padding: '8px', fontSize: '12px', textAlign: 'right', fontWeight: '800' }}>
+                        Rs. {Number(item.subtotal || item.unit_price * item.quantity).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                  {/* Totals Subtable */}
+                  <tr style={{ borderTop: '2px solid #000' }}>
+                    <td colSpan="3" style={{ padding: '6px 8px', textAlign: 'right', fontSize: '11px', fontWeight: '700', borderRight: '1px solid #000' }}>Order Subtotal:</td>
+                    <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '11px', fontWeight: '700' }}>Rs. {Number(selectedPrintOrder.subtotal).toLocaleString()}</td>
+                  </tr>
+                  <tr>
+                    <td colSpan="3" style={{ padding: '6px 8px', textAlign: 'right', fontSize: '11px', fontWeight: '700', borderRight: '1px solid #000' }}>Shipping / Delivery Fee:</td>
+                    <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: '11px', fontWeight: '700' }}>
+                      {Number(selectedPrintOrder.shipping_fee) > 0 ? `Rs. ${Number(selectedPrintOrder.shipping_fee).toLocaleString()}` : 'FREE (Rs. 0)'}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
 
-            <div className="border-b-2 border-black pb-3 space-y-1 text-sm">
-              <p className="font-bold uppercase">RECIPIENT / DELIVERY TO:</p>
-              <p className="font-black text-base">{selectedPrintOrder.customer_name}</p>
-              <p className="font-black text-base">{selectedPrintOrder.customer_phone}</p>
-              <p>
-                {selectedPrintOrder.shipping_address?.streetAddress || selectedPrintOrder.shipping_address?.street_address},{' '}
-                {selectedPrintOrder.shipping_address?.area ? `${selectedPrintOrder.shipping_address.area}, ` : ''}
-                <strong>{selectedPrintOrder.shipping_address?.city}</strong>, {selectedPrintOrder.shipping_address?.province}
-              </p>
+            {/* Massive COD Collection Notice Box */}
+            <div style={{ border: '3px solid #000', padding: '12px', marginBottom: '14px', textAlign: 'center', background: '#fff' }}>
+              <div style={{ fontSize: '13px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                💵 CASH ON DELIVERY (COD) AMOUNT TO COLLECT FROM CUSTOMER:
+              </div>
+              <div style={{ fontSize: '32px', fontWeight: '900', color: '#000', margin: '4px 0' }}>
+                Rs. {Number(selectedPrintOrder.total_amount).toLocaleString()}
+              </div>
+              <div style={{ fontSize: '11px', fontWeight: '700', color: '#444' }}>
+                * RIDER NOTICE: Please collect exact cash payment before handing over parcel *
+              </div>
             </div>
 
-            <div className="border-b-2 border-black pb-3 space-y-1 text-xs">
-              <p className="font-bold uppercase">ITEMS ENCLOSED:</p>
-              {selectedPrintOrder.items?.map((item, i) => (
-                <div key={i} className="flex justify-between">
-                  <span>{item.quantity}x {item.title} ({item.variant_name || 'Standard'})</span>
-                  <span className="font-bold">Rs. {Number(item.subtotal).toLocaleString()}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="p-3 border-2 border-black bg-gray-100 text-center space-y-1">
-              <p className="text-xs font-bold uppercase">AMOUNT TO COLLECT (COD):</p>
-              <p className="text-2xl font-black">Rs. {Number(selectedPrintOrder.total_amount).toLocaleString()}</p>
-            </div>
-
-            <div className="text-center text-[10px] pt-2">
-              <p>Helpline / WhatsApp: 0342-5097760 • Dkart Official Store</p>
-            </div>
+            {/* Footer Checklist & Signatures */}
+            <table style={{ width: '100%', fontSize: '10px', borderTop: '2px dashed #000', paddingTop: '10px', color: '#333' }}>
+              <tbody>
+                <tr>
+                  <td style={{ width: '60%', verticalAlign: 'top', lineHeight: '1.4' }}>
+                    <strong>COURIER INSTRUCTIONS:</strong><br />
+                    • Standard 7-Day Doorstep Replacement Guarantee Included.<br />
+                    • Do not deliver if package security seal is damaged.<br />
+                    • In case of customer unavailability, re-attempt delivery or call helpline.
+                  </td>
+                  <td style={{ width: '40%', verticalAlign: 'bottom', textAlign: 'right' }}>
+                    <div style={{ borderBottom: '1px solid #000', width: '140px', display: 'inline-block', marginBottom: '4px' }}></div>
+                    <div><strong>Receiver / Courier Signature</strong></div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       )}
