@@ -25,7 +25,7 @@ runSupabaseMigration().catch(err => console.error('Supabase auto-init error:', e
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['*']
 }));
 
 app.use(express.json({ limit: '10mb' }));
