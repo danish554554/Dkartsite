@@ -1,7 +1,7 @@
 let rawBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').trim().replace(/\/+$/, '');
 const API_BASE_URL = rawBase.endsWith('/api') ? rawBase : `${rawBase}/api`;
 
-export async function fetchApi(endpoint, options = {}) {
+export async function fetchApi(endpoint, options = {}, retries = 3) {
   const token = localStorage.getItem('dkart_token');
   const headers = {
     'Content-Type': 'application/json',
@@ -13,21 +13,28 @@ export async function fetchApi(endpoint, options = {}) {
 
   const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
 
-  try {
-    const res = await fetch(url, {
-      cache: 'no-store',
-      ...options,
-      headers,
-    });
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url, {
+        cache: 'no-store',
+        ...options,
+        headers,
+      });
 
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.message || 'Something went wrong. Please try again.');
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Something went wrong. Please try again.');
+      }
+      return data;
+    } catch (error) {
+      if (attempt < retries && (!options.method || options.method === 'GET')) {
+        console.log(`[Dkart API] Waiting for server cold start, retrying ${endpoint} (attempt ${attempt + 1}/${retries})...`);
+        await new Promise((r) => setTimeout(r, 2500));
+        continue;
+      }
+      console.error(`API Error on ${endpoint}:`, error);
+      throw error;
     }
-    return data;
-  } catch (error) {
-    console.error(`API Error on ${endpoint}:`, error);
-    throw error;
   }
 }
 
