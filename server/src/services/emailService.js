@@ -380,13 +380,14 @@ export async function sendOrderEmails(order, items) {
 
     // MODE 1: Brevo REST API (HTTPS Port 443 - zero block)
     if (brevoApiKey) {
-      console.log('⚡ Dispatching emails via Brevo HTTPS REST API...');
+      const brevoSender = process.env.BREVO_SENDER_EMAIL || process.env.SMTP_USER || 'admindkart@gmail.com';
+      console.log(`⚡ Dispatching emails via Brevo HTTPS REST API (Sender: ${brevoSender})...`);
       if (order.customer_email && order.customer_email.includes('@')) {
         await sendViaBrevoApi({
           to: order.customer_email,
           subject: `Order Confirmation #${order.id} - Dkart.pk`,
           htmlContent: customerHtml,
-          senderEmail: 'admindkart@gmail.com',
+          senderEmail: brevoSender,
           senderName: 'Dkart Store',
           apiKey: brevoApiKey
         });
@@ -396,7 +397,7 @@ export async function sendOrderEmails(order, items) {
         to: adminEmail,
         subject: `🚨 New Order Alert #${order.id} - Rs. ${orderTotal} (${order.customer_name})`,
         htmlContent: adminHtml,
-        senderEmail: 'admindkart@gmail.com',
+        senderEmail: brevoSender,
         senderName: 'Dkart Store Alert',
         apiKey: brevoApiKey
       });
