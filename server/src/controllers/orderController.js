@@ -1,8 +1,9 @@
-import { db } from '../database/db.js';
+import { query, queryOne, queryAll, execute, pool } from '../database/db.js';
 import { sendOrderEmails } from '../services/emailService.js';
 import { generateCustomerWhatsAppReceipt } from '../services/whatsappService.js';
 
-export const createOrder = (req, res) => {
+export const createOrder = async (req, res) => {
+  const client = await pool.connect();
   try {
     const {
       customerName,
@@ -26,12 +27,18 @@ export const createOrder = (req, res) => {
     const verifiedItems = [];
 
     for (const item of items) {
-      const product = db.prepare('SELECT id, title, price, sale_price, stock_quantity, (SELECT url FROM product_images WHERE product_id = products.id LIMIT 1) as image FROM products WHERE id = ?').get(item.productId);
+      const pRes = await client.query(`
+        SELECT id, title, price, sale_price, stock_quantity, 
+               (SELECT url FROM product_images WHERE product_id = products.id LIMIT 1) as image 
+        FROM products WHERE id = $1
+      `, [item.productId]);
+      const product = pRes.rows[0];
+
       if (!product) {
         return res.status(400).json({ success: false, message: `Product ID ${item.productId} was not found.` });
       }
 
-      const unitPrice = product.sale_price !== null && product.sale_price !== undefined ? product.sale_price : product.price;
+      const unitPrice = product.sale_price !== null && product.sale_price !== undefined ? Number(product.sale_price) : Number(product.price);
       const qty = Math.max(1, parseInt(item.quantity, 10) || 1);
       const lineTotal = unitPrice * qty;
       subtotal += lineTotal;
@@ -51,12 +58,13 @@ export const createOrder = (req, res) => {
     // Apply Coupon if valid
     let discountAmount = 0;
     if (couponCode) {
-      const coupon = db.prepare('SELECT * FROM coupons WHERE UPPER(code) = UPPER(?) AND is_active = 1').get(couponCode.trim());
-      if (coupon && subtotal >= coupon.min_spend) {
+      const cRes = await client.query('SELECT * FROM coupons WHERE UPPER(code) = UPPER($1) AND is_active = true', [couponCode.trim()]);
+      const coupon = cRes.rows[0];
+      if (coupon && subtotal >= Number(coupon.min_spend || 0)) {
         if (coupon.discount_type === 'percentage') {
-          discountAmount = Math.round((subtotal * coupon.discount_value) / 100);
+          discountAmount = Math.round((subtotal * Number(coupon.discount_value)) / 100);
         } else {
-          discountAmount = Math.min(coupon.discount_value, subtotal);
+          discountAmount = Math.min(Number(coupon.discount_value), subtotal);
         }
       }
     }
@@ -70,65 +78,59 @@ export const createOrder = (req, res) => {
     const orderId = `DK-${randomSuffix}`;
     const trackingNumber = `TCS-${Math.floor(1000000 + Math.random() * 9000000)}`;
 
-    const insertOrder = db.prepare(`
+    await client.query('BEGIN');
+
+    await client.query(`
       INSERT INTO orders (
         id, user_id, customer_name, customer_phone, customer_email,
         shipping_address, payment_method, payment_status, order_status,
         subtotal, discount_amount, shipping_fee, total_amount, coupon_code,
         notes, tracking_number
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+    `, [
+      orderId,
+      userId,
+      customerName.trim(),
+      customerPhone.trim(),
+      customerEmail ? customerEmail.trim() : null,
+      typeof shippingAddress === 'string' ? JSON.parse(shippingAddress) : shippingAddress,
+      paymentMethod,
+      paymentMethod === 'cod' ? 'pending' : 'paid',
+      'Confirmed',
+      subtotal,
+      discountAmount,
+      shippingFee,
+      totalAmount,
+      couponCode || null,
+      notes || null,
+      trackingNumber
+    ]);
 
-    const insertItem = db.prepare(`
-      INSERT INTO order_items (
-        order_id, product_id, title, image, variant_name, unit_price, quantity, subtotal
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    const decrementStock = db.prepare(`
-      UPDATE products 
-      SET stock_quantity = MAX(0, stock_quantity - ?) 
-      WHERE id = ?
-    `);
-
-    // Execute in a transaction
-    const executeTransaction = db.transaction(() => {
-      insertOrder.run(
+    for (const item of verifiedItems) {
+      await client.query(`
+        INSERT INTO order_items (
+          order_id, product_id, title, image, variant_name, unit_price, quantity, subtotal
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `, [
         orderId,
-        userId,
-        customerName.trim(),
-        customerPhone.trim(),
-        customerEmail ? customerEmail.trim() : null,
-        typeof shippingAddress === 'string' ? shippingAddress : JSON.stringify(shippingAddress),
-        paymentMethod,
-        paymentMethod === 'cod' ? 'pending' : 'paid',
-        'Confirmed',
-        subtotal,
-        discountAmount,
-        shippingFee,
-        totalAmount,
-        couponCode || null,
-        notes || null,
-        trackingNumber
-      );
+        item.productId,
+        item.title,
+        item.image,
+        item.variantName,
+        item.unitPrice,
+        item.quantity,
+        item.subtotal
+      ]);
 
-      for (const item of verifiedItems) {
-        insertItem.run(
-          orderId,
-          item.productId,
-          item.title,
-          item.image,
-          item.variantName,
-          item.unitPrice,
-          item.quantity,
-          item.subtotal
-        );
+      await client.query(`
+        UPDATE products 
+        SET stock_quantity = GREATEST(0, stock_quantity - $1),
+            is_in_stock = (stock_quantity - $1 > 0)
+        WHERE id = $2
+      `, [item.quantity, item.productId]);
+    }
 
-        decrementStock.run(item.quantity, item.productId);
-      }
-    });
-
-    executeTransaction();
+    await client.query('COMMIT');
 
     const orderPayload = {
       id: orderId,
@@ -174,27 +176,34 @@ export const createOrder = (req, res) => {
       whatsApp: whatsappData
     });
   } catch (error) {
+    await client.query('ROLLBACK');
     console.error('Order creation error:', error);
     res.status(500).json({ success: false, message: 'Failed to place order.' });
+  } finally {
+    client.release();
   }
 };
 
-export const getOrderById = (req, res) => {
+export const getOrderById = async (req, res) => {
   try {
     const { id } = req.params;
-    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(id);
+    const order = await queryOne('SELECT * FROM orders WHERE id = ?', [id]);
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order not found.' });
     }
 
-    const items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(id);
+    const items = await queryAll('SELECT * FROM order_items WHERE order_id = ?', [id]);
 
     res.json({
       success: true,
       order: {
         ...order,
-        shipping_address: JSON.parse(order.shipping_address),
-        items
+        subtotal: Number(order.subtotal),
+        discount_amount: Number(order.discount_amount),
+        shipping_fee: Number(order.shipping_fee),
+        total_amount: Number(order.total_amount),
+        shipping_address: typeof order.shipping_address === 'string' ? JSON.parse(order.shipping_address) : order.shipping_address,
+        items: items.map(i => ({ ...i, unit_price: Number(i.unit_price), subtotal: Number(i.subtotal) }))
       }
     });
   } catch (error) {
@@ -202,27 +211,27 @@ export const getOrderById = (req, res) => {
   }
 };
 
-export const trackOrder = (req, res) => {
+export const trackOrder = async (req, res) => {
   try {
     const { orderId, phone } = req.query;
     if (!orderId) {
       return res.status(400).json({ success: false, message: 'Order ID is required.' });
     }
 
-    let query = 'SELECT * FROM orders WHERE id = ?';
+    let sql = 'SELECT * FROM orders WHERE id = ?';
     const params = [orderId.trim().toUpperCase()];
 
     if (phone) {
-      query += ' AND customer_phone LIKE ?';
+      sql += ' AND customer_phone ILIKE ?';
       params.push(`%${phone.trim()}%`);
     }
 
-    const order = db.prepare(query).get(...params);
+    const order = await queryOne(sql, params);
     if (!order) {
       return res.status(404).json({ success: false, message: 'No matching order found. Please check your Order ID and phone number.' });
     }
 
-    const items = db.prepare('SELECT title, image, variant_name, quantity, unit_price, subtotal FROM order_items WHERE order_id = ?').all(order.id);
+    const items = await queryAll('SELECT title, image, variant_name, quantity, unit_price, subtotal FROM order_items WHERE order_id = ?', [order.id]);
 
     res.json({
       success: true,
@@ -234,9 +243,9 @@ export const trackOrder = (req, res) => {
         courier: 'TCS Express Pakistan',
         paymentMethod: order.payment_method,
         paymentStatus: order.payment_status,
-        totalAmount: order.total_amount,
+        totalAmount: Number(order.total_amount),
         createdAt: order.created_at,
-        items
+        items: items.map(i => ({ ...i, unit_price: Number(i.unit_price), subtotal: Number(i.subtotal) }))
       }
     });
   } catch (error) {
@@ -244,17 +253,21 @@ export const trackOrder = (req, res) => {
   }
 };
 
-export const getUserOrders = (req, res) => {
+export const getUserOrders = async (req, res) => {
   try {
-    const orders = db.prepare('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC').all(req.user.id);
-    const formattedOrders = orders.map(order => {
-      const items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(order.id);
+    const orders = await queryAll('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC', [req.user.id]);
+    const formattedOrders = await Promise.all(orders.map(async order => {
+      const items = await queryAll('SELECT * FROM order_items WHERE order_id = ?', [order.id]);
       return {
         ...order,
-        shipping_address: JSON.parse(order.shipping_address),
-        items
+        subtotal: Number(order.subtotal),
+        discount_amount: Number(order.discount_amount),
+        shipping_fee: Number(order.shipping_fee),
+        total_amount: Number(order.total_amount),
+        shipping_address: typeof order.shipping_address === 'string' ? JSON.parse(order.shipping_address) : order.shipping_address,
+        items: items.map(i => ({ ...i, unit_price: Number(i.unit_price), subtotal: Number(i.subtotal) }))
       };
-    });
+    }));
 
     res.json({ success: true, orders: formattedOrders });
   } catch (error) {

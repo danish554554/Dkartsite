@@ -1,35 +1,45 @@
-import { db } from '../database/db.js';
+import { query, queryOne, queryAll, execute } from '../database/db.js';
 
-export const getAnalytics = (req, res) => {
+export const getAnalytics = async (req, res) => {
   try {
-    const totalSalesRow = db.prepare("SELECT SUM(total_amount) as total FROM orders WHERE order_status != 'Cancelled'").get();
-    const totalSales = totalSalesRow?.total || 0;
+    const totalSalesRow = await queryOne("SELECT SUM(total_amount) as total FROM orders WHERE order_status != 'Cancelled'");
+    const totalSales = Number(totalSalesRow?.total || 0);
 
-    const totalOrders = db.prepare('SELECT COUNT(*) as count FROM orders').get().count;
-    const pendingOrders = db.prepare("SELECT COUNT(*) as count FROM orders WHERE order_status = 'Pending' OR order_status = 'Processing'").get().count;
-    const deliveredOrders = db.prepare("SELECT COUNT(*) as count FROM orders WHERE order_status = 'Delivered'").get().count;
+    const totalOrdersRow = await queryOne('SELECT COUNT(*) as count FROM orders');
+    const totalOrders = parseInt(totalOrdersRow?.count || 0, 10);
 
-    const totalProducts = db.prepare('SELECT COUNT(*) as count FROM products').get().count;
-    const lowStockProducts = db.prepare('SELECT COUNT(*) as count FROM products WHERE stock_quantity <= 10').get().count;
-    const totalCustomers = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'customer'").get().count;
+    const pendingOrdersRow = await queryOne("SELECT COUNT(*) as count FROM orders WHERE order_status = 'Pending' OR order_status = 'Processing' OR order_status = 'Confirmed'");
+    const pendingOrders = parseInt(pendingOrdersRow?.count || 0, 10);
 
-    const recentOrders = db.prepare(`
+    const deliveredOrdersRow = await queryOne("SELECT COUNT(*) as count FROM orders WHERE order_status = 'Delivered'");
+    const deliveredOrders = parseInt(deliveredOrdersRow?.count || 0, 10);
+
+    const totalProductsRow = await queryOne('SELECT COUNT(*) as count FROM products');
+    const totalProducts = parseInt(totalProductsRow?.count || 0, 10);
+
+    const lowStockProductsRow = await queryOne('SELECT COUNT(*) as count FROM products WHERE stock_quantity <= 10');
+    const lowStockProducts = parseInt(lowStockProductsRow?.count || 0, 10);
+
+    const totalCustomersRow = await queryOne("SELECT COUNT(*) as count FROM users WHERE role = 'customer'");
+    const totalCustomers = parseInt(totalCustomersRow?.count || 0, 10);
+
+    const recentOrders = await queryAll(`
       SELECT id, customer_name, customer_phone, total_amount, order_status, payment_method, created_at
       FROM orders
       ORDER BY created_at DESC
       LIMIT 6
-    `).all();
+    `);
 
-    const topProducts = db.prepare(`
+    const topProducts = await queryAll(`
       SELECT p.id, p.title, p.price, p.sale_price, p.stock_quantity,
         (SELECT url FROM product_images WHERE product_id = p.id LIMIT 1) as image,
-        SUM(oi.quantity) as units_sold
-      FROM order_items oi
-      JOIN products p ON oi.product_id = p.id
+        COALESCE(SUM(oi.quantity), 0) as units_sold
+      FROM products p
+      LEFT JOIN order_items oi ON oi.product_id = p.id
       GROUP BY p.id
       ORDER BY units_sold DESC
       LIMIT 5
-    `).all();
+    `);
 
     res.json({
       success: true,
@@ -41,8 +51,8 @@ export const getAnalytics = (req, res) => {
         totalProducts,
         lowStockProducts,
         totalCustomers,
-        recentOrders,
-        topProducts
+        recentOrders: recentOrders.map(o => ({ ...o, total_amount: Number(o.total_amount) })),
+        topProducts: topProducts.map(p => ({ ...p, price: Number(p.price), sale_price: p.sale_price !== null ? Number(p.sale_price) : null, units_sold: Number(p.units_sold) }))
       }
     });
   } catch (error) {
@@ -51,9 +61,9 @@ export const getAnalytics = (req, res) => {
   }
 };
 
-export const getAllProducts = (req, res) => {
+export const getAllProducts = async (req, res) => {
   try {
-    const products = db.prepare(`
+    const products = await queryAll(`
       SELECT 
         p.*, 
         c.name as category_name,
@@ -61,19 +71,21 @@ export const getAllProducts = (req, res) => {
       FROM products p
       LEFT JOIN categories c ON p.category_id = c.id
       ORDER BY p.id DESC
-    `).all();
+    `);
 
-    const fullProducts = products.map((p) => {
-      const images = db.prepare('SELECT id, url, alt_text, is_primary FROM product_images WHERE product_id = ? ORDER BY is_primary DESC, display_order ASC').all(p.id);
-      const variants = db.prepare('SELECT id, variant_type, variant_name, price_modifier, stock_quantity FROM product_variants WHERE product_id = ?').all(p.id);
+    const fullProducts = await Promise.all(products.map(async (p) => {
+      const images = await queryAll('SELECT id, url, alt_text, is_primary FROM product_images WHERE product_id = ? ORDER BY is_primary DESC, display_order ASC', [p.id]);
+      const variants = await queryAll('SELECT id, variant_type, variant_name, price_modifier, stock_quantity FROM product_variants WHERE product_id = ?', [p.id]);
       return {
         ...p,
-        key_features: p.key_features ? JSON.parse(p.key_features) : [],
-        specs: p.specs ? JSON.parse(p.specs) : {},
+        price: Number(p.price),
+        sale_price: p.sale_price !== null ? Number(p.sale_price) : null,
+        key_features: Array.isArray(p.key_features) ? p.key_features : (typeof p.key_features === 'string' ? JSON.parse(p.key_features) : []),
+        specs: typeof p.specs === 'object' && p.specs !== null ? p.specs : (typeof p.specs === 'string' ? JSON.parse(p.specs) : {}),
         images,
-        variants
+        variants: variants.map(v => ({ ...v, price_modifier: Number(v.price_modifier || 0) }))
       };
-    });
+    }));
 
     res.json({ success: true, data: fullProducts });
   } catch (error) {
@@ -81,7 +93,7 @@ export const getAllProducts = (req, res) => {
   }
 };
 
-export const createProduct = (req, res) => {
+export const createProduct = async (req, res) => {
   try {
     const {
       title,
@@ -112,13 +124,14 @@ export const createProduct = (req, res) => {
     const discount = sPrice && sPrice < regularPrice ? Math.round(((regularPrice - sPrice) / regularPrice) * 100) : 0;
     const stock = parseInt(stockQuantity, 10) || 25;
 
-    const result = db.prepare(`
+    const result = await execute(`
       INSERT INTO products (
         title, slug, tagline, description, key_features, specs, category_id,
         badge, price, sale_price, discount_percentage, stock_quantity, is_in_stock,
         sku, is_featured, is_trending
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, true, false)
+      RETURNING id
+    `, [
       title.trim(),
       slug,
       tagline || '',
@@ -131,36 +144,33 @@ export const createProduct = (req, res) => {
       sPrice,
       discount,
       stock,
-      stock > 0 ? 1 : 0,
-      sku || `DK-${Math.floor(1000 + Math.random() * 9000)}`,
-      1,
-      0
-    );
+      stock > 0,
+      sku || `DK-${Math.floor(1000 + Math.random() * 9000)}`
+    ]);
 
-    const productId = result.lastInsertRowid;
+    const productId = result.rows[0]?.id;
 
     // Save Images
     if (Array.isArray(images) && images.length > 0) {
-      const insertImg = db.prepare('INSERT INTO product_images (product_id, url, alt_text, is_primary, display_order) VALUES (?, ?, ?, ?, ?)');
-      images.forEach((img, i) => {
+      for (let i = 0; i < images.length; i++) {
+        const img = images[i];
         const url = typeof img === 'string' ? img : img.url;
-        const isPrimary = typeof img === 'object' && img.is_primary !== undefined ? (img.is_primary ? 1 : 0) : (i === 0 ? 1 : 0);
-        insertImg.run(productId, url, title, isPrimary, i);
-      });
+        const isPrimary = typeof img === 'object' && img.is_primary !== undefined ? Boolean(img.is_primary) : i === 0;
+        await execute('INSERT INTO product_images (product_id, url, alt_text, is_primary, display_order) VALUES (?, ?, ?, ?, ?)', [productId, url, title, isPrimary, i]);
+      }
     }
 
     // Save Variants
     if (Array.isArray(variants) && variants.length > 0) {
-      const insertVar = db.prepare('INSERT INTO product_variants (product_id, variant_type, variant_name, price_modifier, stock_quantity) VALUES (?, ?, ?, ?, ?)');
-      variants.forEach((v) => {
-        insertVar.run(
+      for (const v of variants) {
+        await execute('INSERT INTO product_variants (product_id, variant_type, variant_name, price_modifier, stock_quantity) VALUES (?, ?, ?, ?, ?)', [
           productId,
           v.variant_type || 'color',
           v.variant_name,
           Number(v.price_modifier || 0),
           Number(v.stock_quantity || 20)
-        );
-      });
+        ]);
+      }
     }
 
     res.status(201).json({ success: true, message: 'Product created successfully with all images and variants!', id: productId, slug });
@@ -170,10 +180,10 @@ export const createProduct = (req, res) => {
   }
 };
 
-export const updateProduct = (req, res) => {
+export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const existing = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
+    const existing = await queryOne('SELECT * FROM products WHERE id = ?', [id]);
     if (!existing) {
       return res.status(404).json({ success: false, message: 'Product not found.' });
     }
@@ -205,7 +215,7 @@ export const updateProduct = (req, res) => {
 
     const cleanSlug = slug ? slug.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-') : existing.slug;
 
-    db.prepare(`
+    await execute(`
       UPDATE products
       SET 
         title = ?,
@@ -228,45 +238,44 @@ export const updateProduct = (req, res) => {
         rating_average = COALESCE(?, rating_average),
         rating_count = COALESCE(?, rating_count)
       WHERE id = ?
-    `).run(
+    `, [
       title, cleanSlug, tagline, description,
       categoryId || null,
       brand || 'Dkart',
-      regularPrice, sPrice, discount, stock, stock > 0 ? 1 : 0,
+      regularPrice, sPrice, discount, stock, stock > 0,
       badge || null, sku,
       keyFeatures ? JSON.stringify(keyFeatures) : null,
       specs ? JSON.stringify(specs) : null,
-      isFeatured ? 1 : 0,
-      isTrending ? 1 : 0,
+      Boolean(isFeatured),
+      Boolean(isTrending),
       req.body.ratingAverage !== undefined ? req.body.ratingAverage : null,
       req.body.ratingCount !== undefined ? req.body.ratingCount : null,
       id
-    );
+    ]);
 
     // Update images if provided
     if (Array.isArray(images)) {
-      db.prepare('DELETE FROM product_images WHERE product_id = ?').run(id);
-      const insertImg = db.prepare('INSERT INTO product_images (product_id, url, alt_text, is_primary, display_order) VALUES (?, ?, ?, ?, ?)');
-      images.forEach((img, i) => {
+      await execute('DELETE FROM product_images WHERE product_id = ?', [id]);
+      for (let i = 0; i < images.length; i++) {
+        const img = images[i];
         const url = typeof img === 'string' ? img : img.url;
-        const isPrimary = typeof img === 'object' && img.is_primary !== undefined ? (img.is_primary ? 1 : 0) : (i === 0 ? 1 : 0);
-        insertImg.run(id, url, title || 'Product Image', isPrimary, i);
-      });
+        const isPrimary = typeof img === 'object' && img.is_primary !== undefined ? Boolean(img.is_primary) : i === 0;
+        await execute('INSERT INTO product_images (product_id, url, alt_text, is_primary, display_order) VALUES (?, ?, ?, ?, ?)', [id, url, title || 'Product Image', isPrimary, i]);
+      }
     }
 
     // Update variants if provided
     if (Array.isArray(variants)) {
-      db.prepare('DELETE FROM product_variants WHERE product_id = ?').run(id);
-      const insertVar = db.prepare('INSERT INTO product_variants (product_id, variant_type, variant_name, price_modifier, stock_quantity) VALUES (?, ?, ?, ?, ?)');
-      variants.forEach((v) => {
-        insertVar.run(
+      await execute('DELETE FROM product_variants WHERE product_id = ?', [id]);
+      for (const v of variants) {
+        await execute('INSERT INTO product_variants (product_id, variant_type, variant_name, price_modifier, stock_quantity) VALUES (?, ?, ?, ?, ?)', [
           id,
           v.variant_type || 'color',
           v.variant_name,
           Number(v.price_modifier || 0),
           Number(v.stock_quantity || 20)
-        );
-      });
+        ]);
+      }
     }
 
     res.json({ success: true, message: 'Product updated successfully.' });
@@ -276,67 +285,48 @@ export const updateProduct = (req, res) => {
   }
 };
 
-export const deleteProduct = (req, res) => {
+export const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    db.pragma('foreign_keys = OFF');
-    db.prepare('DELETE FROM order_items WHERE product_id = ?').run(id);
-    db.prepare('DELETE FROM product_images WHERE product_id = ?').run(id);
-    db.prepare('DELETE FROM product_variants WHERE product_id = ?').run(id);
-    db.prepare('DELETE FROM reviews WHERE product_id = ?').run(id);
-    db.prepare('DELETE FROM wishlist WHERE product_id = ?').run(id);
-    db.prepare('DELETE FROM products WHERE id = ?').run(id);
-    db.pragma('foreign_keys = ON');
+    await execute('DELETE FROM products WHERE id = ?', [id]);
     res.json({ success: true, message: 'Product deleted.' });
   } catch (error) {
-    db.pragma('foreign_keys = ON');
     console.error('deleteProduct error:', error);
     res.status(500).json({ success: false, message: 'Failed to delete product.' });
   }
 };
 
-export const clearAllProducts = (req, res) => {
+export const clearAllProducts = async (req, res) => {
   try {
-    db.pragma('foreign_keys = OFF');
-    db.exec(`
-      DELETE FROM order_items;
-      DELETE FROM orders;
-      DELETE FROM wishlist;
-      DELETE FROM reviews;
-      DELETE FROM product_variants;
-      DELETE FROM product_images;
-      DELETE FROM products;
-    `);
-    db.pragma('foreign_keys = ON');
+    await execute('DELETE FROM products');
     res.json({ success: true, message: 'All products cleared successfully.' });
   } catch (error) {
-    db.pragma('foreign_keys = ON');
     console.error('Clear products error:', error);
     res.status(500).json({ success: false, message: 'Failed to clear products.' });
   }
 };
 
-export const getAllOrders = (req, res) => {
+export const getAllOrders = async (req, res) => {
   try {
     const { status, search } = req.query;
-    let query = 'SELECT * FROM orders WHERE 1=1';
+    let sql = 'SELECT * FROM orders WHERE 1=1';
     const params = [];
 
     if (status && status !== 'All' && status !== 'undefined') {
-      query += ' AND order_status = ?';
+      sql += ' AND order_status = ?';
       params.push(status);
     }
 
     if (search && search !== 'undefined' && search.trim() !== '') {
-      query += ' AND (id LIKE ? OR customer_name LIKE ? OR customer_phone LIKE ?)';
+      sql += ' AND (id ILIKE ? OR customer_name ILIKE ? OR customer_phone ILIKE ?)';
       const s = `%${search.trim()}%`;
       params.push(s, s, s);
     }
 
-    query += ' ORDER BY created_at DESC';
+    sql += ' ORDER BY created_at DESC';
 
-    const orders = db.prepare(query).all(...params);
-    const fullOrders = orders.map((o) => {
+    const orders = await queryAll(sql, params);
+    const fullOrders = await Promise.all(orders.map(async (o) => {
       let parsedAddress = o.shipping_address;
       if (typeof o.shipping_address === 'string') {
         try {
@@ -345,12 +335,17 @@ export const getAllOrders = (req, res) => {
           parsedAddress = { address: o.shipping_address };
         }
       }
+      const items = await queryAll('SELECT * FROM order_items WHERE order_id = ?', [o.id]);
       return {
         ...o,
+        subtotal: Number(o.subtotal),
+        discount_amount: Number(o.discount_amount),
+        shipping_fee: Number(o.shipping_fee),
+        total_amount: Number(o.total_amount),
         shipping_address: parsedAddress,
-        items: db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(o.id)
+        items: items.map(i => ({ ...i, unit_price: Number(i.unit_price), subtotal: Number(i.subtotal) }))
       };
-    });
+    }));
 
     res.json({ success: true, data: fullOrders });
   } catch (error) {
@@ -359,7 +354,7 @@ export const getAllOrders = (req, res) => {
   }
 };
 
-export const updateOrderStatus = (req, res) => {
+export const updateOrderStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, trackingNumber } = req.body;
@@ -368,11 +363,11 @@ export const updateOrderStatus = (req, res) => {
       return res.status(400).json({ success: false, message: 'Status is required.' });
     }
 
-    db.prepare(`
+    await execute(`
       UPDATE orders
       SET order_status = ?, tracking_number = COALESCE(?, tracking_number)
       WHERE id = ?
-    `).run(status, trackingNumber || null, id);
+    `, [status, trackingNumber || null, id]);
 
     res.json({ success: true, message: `Order status updated to "${status}".` });
   } catch (error) {
@@ -380,9 +375,9 @@ export const updateOrderStatus = (req, res) => {
   }
 };
 
-export const getInventory = (req, res) => {
+export const getInventory = async (req, res) => {
   try {
-    const items = db.prepare(`
+    const items = await queryAll(`
       SELECT 
         p.id, p.title, p.sku, p.stock_quantity, p.price, p.sale_price,
         c.name as category_name,
@@ -390,25 +385,25 @@ export const getInventory = (req, res) => {
       FROM products p
       LEFT JOIN categories c ON p.category_id = c.id
       ORDER BY p.stock_quantity ASC
-    `).all();
+    `);
 
-    res.json({ success: true, data: items });
+    res.json({ success: true, data: items.map(p => ({ ...p, price: Number(p.price), sale_price: p.sale_price !== null ? Number(p.sale_price) : null })) });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to retrieve inventory.' });
   }
 };
 
-export const updateInventory = (req, res) => {
+export const updateInventory = async (req, res) => {
   try {
     const { id } = req.params;
     const { stockQuantity } = req.body;
     const qty = parseInt(stockQuantity, 10);
 
-    db.prepare(`
+    await execute(`
       UPDATE products
       SET stock_quantity = ?, is_in_stock = ?
       WHERE id = ?
-    `).run(qty, qty > 0 ? 1 : 0, id);
+    `, [qty, qty > 0, id]);
 
     res.json({ success: true, message: 'Stock updated.' });
   } catch (error) {
@@ -416,9 +411,9 @@ export const updateInventory = (req, res) => {
   }
 };
 
-export const getCustomers = (req, res) => {
+export const getCustomers = async (req, res) => {
   try {
-    const customers = db.prepare(`
+    const customers = await queryAll(`
       SELECT 
         u.id, u.name, u.email, u.phone, u.created_at,
         COUNT(o.id) as total_orders,
@@ -428,30 +423,30 @@ export const getCustomers = (req, res) => {
       WHERE u.role = 'customer'
       GROUP BY u.id
       ORDER BY u.created_at DESC
-    `).all();
+    `);
 
-    res.json({ success: true, data: customers });
+    res.json({ success: true, data: customers.map(c => ({ ...c, total_orders: Number(c.total_orders), total_spent: Number(c.total_spent) })) });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to retrieve customers.' });
   }
 };
 
-export const getAdminBanners = (req, res) => {
+export const getAdminBanners = async (req, res) => {
   try {
-    const banners = db.prepare('SELECT * FROM banners ORDER BY position, display_order').all();
+    const banners = await queryAll('SELECT * FROM banners ORDER BY id ASC');
     res.json({ success: true, data: banners });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to retrieve banners.' });
   }
 };
 
-export const createBanner = (req, res) => {
+export const createBanner = async (req, res) => {
   try {
-    const { title, subtitle, badge, ctaText, ctaLink, imageUrl, position = 'hero' } = req.body;
-    db.prepare(`
-      INSERT INTO banners (title, subtitle, badge, cta_text, cta_link, image_url, position, is_active)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 1)
-    `).run(title, subtitle, badge, ctaText || 'Shop Now', ctaLink || '/shop', imageUrl, position);
+    const { title, subtitle, imageUrl, linkUrl } = req.body;
+    await execute(`
+      INSERT INTO banners (title, subtitle, image_url, link_url, is_active)
+      VALUES (?, ?, ?, ?, true)
+    `, [title, subtitle, imageUrl, linkUrl || '/shop']);
 
     res.status(201).json({ success: true, message: 'Banner created successfully.' });
   } catch (error) {
@@ -459,65 +454,64 @@ export const createBanner = (req, res) => {
   }
 };
 
-export const deleteBanner = (req, res) => {
+export const deleteBanner = async (req, res) => {
   try {
     const { id } = req.params;
-    db.prepare('DELETE FROM banners WHERE id = ?').run(id);
+    await execute('DELETE FROM banners WHERE id = ?', [id]);
     res.json({ success: true, message: 'Banner deleted.' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to delete banner.' });
   }
 };
 
-// Category Management
-export const createCategory = (req, res) => {
+export const createCategory = async (req, res) => {
   try {
-    const { name, description, imageUrl, isFeatured = 1 } = req.body;
+    const { name, description, imageUrl, isFeatured = true } = req.body;
     if (!name) return res.status(400).json({ success: false, message: 'Category name is required.' });
 
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const result = db.prepare(`
+    const result = await execute(`
       INSERT INTO categories (name, slug, description, image_url, is_featured)
       VALUES (?, ?, ?, ?, ?)
-    `).run(name.trim(), slug, description || '', imageUrl || '', isFeatured ? 1 : 0);
+      RETURNING id
+    `, [name.trim(), slug, description || '', imageUrl || '', Boolean(isFeatured)]);
 
-    res.status(201).json({ success: true, message: 'Category created.', id: result.lastInsertRowid });
+    res.status(201).json({ success: true, message: 'Category created.', id: result.rows[0]?.id });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to create category.' });
   }
 };
 
-export const deleteCategory = (req, res) => {
+export const deleteCategory = async (req, res) => {
   try {
     const { id } = req.params;
-    db.prepare('DELETE FROM categories WHERE id = ?').run(id);
+    await execute('DELETE FROM categories WHERE id = ?', [id]);
     res.json({ success: true, message: 'Category deleted.' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to delete category.' });
   }
 };
 
-// Coupon Management
-export const getAdminCoupons = (req, res) => {
+export const getAdminCoupons = async (req, res) => {
   try {
-    const coupons = db.prepare('SELECT * FROM coupons ORDER BY id DESC').all();
-    res.json({ success: true, data: coupons });
+    const coupons = await queryAll('SELECT * FROM coupons ORDER BY id DESC');
+    res.json({ success: true, data: coupons.map(c => ({ ...c, discount_value: Number(c.discount_value), min_spend: Number(c.min_spend) })) });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to retrieve coupons.' });
   }
 };
 
-export const createCoupon = (req, res) => {
+export const createCoupon = async (req, res) => {
   try {
     const { code, discountType, discountValue, minSpend = 0 } = req.body;
     if (!code || !discountValue) {
       return res.status(400).json({ success: false, message: 'Code and discount value are required.' });
     }
 
-    db.prepare(`
+    await execute(`
       INSERT INTO coupons (code, discount_type, discount_value, min_spend, is_active)
-      VALUES (?, ?, ?, ?, 1)
-    `).run(code.trim().toUpperCase(), discountType || 'percentage', Number(discountValue), Number(minSpend));
+      VALUES (?, ?, ?, ?, true)
+    `, [code.trim().toUpperCase(), discountType || 'percentage', Number(discountValue), Number(minSpend)]);
 
     res.status(201).json({ success: true, message: 'Coupon created successfully.' });
   } catch (error) {
@@ -525,10 +519,10 @@ export const createCoupon = (req, res) => {
   }
 };
 
-export const deleteCoupon = (req, res) => {
+export const deleteCoupon = async (req, res) => {
   try {
     const { id } = req.params;
-    db.prepare('DELETE FROM coupons WHERE id = ?').run(id);
+    await execute('DELETE FROM coupons WHERE id = ?', [id]);
     res.json({ success: true, message: 'Coupon deleted.' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to delete coupon.' });

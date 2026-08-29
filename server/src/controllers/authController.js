@@ -1,10 +1,10 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { db } from '../database/db.js';
+import { queryOne, execute } from '../database/db.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dkart-production-secret-key-2026';
 
-export const register = (req, res) => {
+export const register = async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
 
@@ -13,7 +13,7 @@ export const register = (req, res) => {
     }
 
     const normalizedEmail = email.toLowerCase().trim();
-    const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(normalizedEmail);
+    const existing = await queryOne('SELECT id FROM users WHERE email = ?', [normalizedEmail]);
     if (existing) {
       return res.status(400).json({ success: false, message: 'An account with this email address already exists.' });
     }
@@ -21,14 +21,16 @@ export const register = (req, res) => {
     const salt = bcrypt.genSaltSync(10);
     const passwordHash = bcrypt.hashSync(password, salt);
 
-    const insert = db.prepare(`
+    const insertRes = await execute(`
       INSERT INTO users (name, email, password_hash, phone, role)
       VALUES (?, ?, ?, ?, 'customer')
-    `);
-    const result = insert.run(name.trim(), normalizedEmail, passwordHash, phone ? phone.trim() : null);
+      RETURNING id
+    `, [name.trim(), normalizedEmail, passwordHash, phone ? phone.trim() : null]);
+
+    const newId = insertRes.rows[0]?.id;
 
     const user = {
-      id: result.lastInsertRowid,
+      id: newId,
       name: name.trim(),
       email: normalizedEmail,
       phone: phone || '',
@@ -49,7 +51,7 @@ export const register = (req, res) => {
   }
 };
 
-export const login = (req, res) => {
+export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -57,7 +59,7 @@ export const login = (req, res) => {
     }
 
     const normalizedEmail = email.toLowerCase().trim();
-    const user = db.prepare('SELECT * FROM users WHERE email = ?').get(normalizedEmail);
+    const user = await queryOne('SELECT * FROM users WHERE email = ?', [normalizedEmail]);
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
@@ -89,14 +91,15 @@ export const login = (req, res) => {
   }
 };
 
-export const getMe = (req, res) => {
+export const getMe = async (req, res) => {
   try {
-    const user = db.prepare('SELECT id, name, email, phone, role, created_at FROM users WHERE id = ?').get(req.user.id);
+    const user = await queryOne('SELECT id, name, email, phone, role, created_at FROM users WHERE id = ?', [req.user.id]);
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found.' });
     }
 
-    const ordersCount = db.prepare('SELECT COUNT(*) as count FROM orders WHERE user_id = ?').get(req.user.id).count;
+    const countRow = await queryOne('SELECT COUNT(*) as count FROM orders WHERE user_id = ?', [req.user.id]);
+    const ordersCount = parseInt(countRow?.count || 0, 10);
 
     res.json({
       success: true,
@@ -110,10 +113,10 @@ export const getMe = (req, res) => {
   }
 };
 
-export const updateProfile = (req, res) => {
+export const updateProfile = async (req, res) => {
   try {
     const { name, phone, currentPassword, newPassword } = req.body;
-    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+    const user = await queryOne('SELECT * FROM users WHERE id = ?', [req.user.id]);
 
     let passwordHash = user.password_hash;
     if (newPassword) {
@@ -126,11 +129,11 @@ export const updateProfile = (req, res) => {
       passwordHash = bcrypt.hashSync(newPassword, 10);
     }
 
-    db.prepare(`
+    await execute(`
       UPDATE users
       SET name = ?, phone = ?, password_hash = ?
       WHERE id = ?
-    `).run(name || user.name, phone !== undefined ? phone : user.phone, passwordHash, req.user.id);
+    `, [name || user.name, phone !== undefined ? phone : user.phone, passwordHash, req.user.id]);
 
     res.json({
       success: true,

@@ -3,7 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import { seedData } from './database/seed.js';
+import { runSupabaseMigration } from './database/supabaseMigrate.js';
 
 import authRoutes from './routes/authRoutes.js';
 import productRoutes from './routes/productRoutes.js';
@@ -18,8 +18,8 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Ensure database and sample catalog are ready
-seedData();
+// Ensure Supabase tables and catalog are ready
+runSupabaseMigration().catch(err => console.error('Supabase auto-init error:', err));
 
 // Middleware
 app.use(cors({

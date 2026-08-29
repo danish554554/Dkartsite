@@ -1,6 +1,6 @@
-import { db } from '../database/db.js';
+import { query, queryOne, queryAll, execute } from '../database/db.js';
 
-export const getProducts = (req, res) => {
+export const getProducts = async (req, res) => {
   try {
     const {
       q,
@@ -16,7 +16,7 @@ export const getProducts = (req, res) => {
       limit = 20
     } = req.query;
 
-    let query = `
+    let sql = `
       SELECT 
         p.*, 
         c.name as category_name, 
@@ -31,60 +31,60 @@ export const getProducts = (req, res) => {
     const params = [];
 
     if (q) {
-      query += ` AND (p.title LIKE ? OR p.tagline LIKE ? OR p.description LIKE ?)`;
+      sql += ` AND (p.title ILIKE ? OR p.tagline ILIKE ? OR p.description ILIKE ?)`;
       const term = `%${q.trim()}%`;
       params.push(term, term, term);
     }
 
     if (category) {
-      query += ` AND c.slug = ?`;
+      sql += ` AND c.slug = ?`;
       params.push(category);
     }
 
     if (minPrice) {
-      query += ` AND COALESCE(p.sale_price, p.price) >= ?`;
+      sql += ` AND COALESCE(p.sale_price, p.price) >= ?`;
       params.push(Number(minPrice));
     }
 
     if (maxPrice) {
-      query += ` AND COALESCE(p.sale_price, p.price) <= ?`;
+      sql += ` AND COALESCE(p.sale_price, p.price) <= ?`;
       params.push(Number(maxPrice));
     }
 
     if (inStock === 'true' || inStock === '1') {
-      query += ` AND p.is_in_stock = 1 AND p.stock_quantity > 0`;
+      sql += ` AND p.is_in_stock = true AND p.stock_quantity > 0`;
     }
 
     if (badge) {
-      query += ` AND p.badge = ?`;
+      sql += ` AND p.badge = ?`;
       params.push(badge);
     }
 
     if (featured === 'true' || featured === '1') {
-      query += ` AND p.is_featured = 1`;
+      sql += ` AND p.is_featured = true`;
     }
 
     if (trending === 'true' || trending === '1') {
-      query += ` AND p.is_trending = 1`;
+      sql += ` AND p.is_trending = true`;
     }
 
     // Sorting
     switch (sort) {
       case 'price-asc':
-        query += ` ORDER BY COALESCE(p.sale_price, p.price) ASC`;
+        sql += ` ORDER BY COALESCE(p.sale_price, p.price) ASC`;
         break;
       case 'price-desc':
-        query += ` ORDER BY COALESCE(p.sale_price, p.price) DESC`;
+        sql += ` ORDER BY COALESCE(p.sale_price, p.price) DESC`;
         break;
       case 'rating':
-        query += ` ORDER BY p.rating_average DESC, p.rating_count DESC`;
+        sql += ` ORDER BY p.rating_average DESC, p.rating_count DESC`;
         break;
       case 'popular':
-        query += ` ORDER BY p.rating_count DESC`;
+        sql += ` ORDER BY p.rating_count DESC`;
         break;
       case 'newest':
       default:
-        query += ` ORDER BY p.id DESC`;
+        sql += ` ORDER BY p.id DESC`;
         break;
     }
 
@@ -93,20 +93,24 @@ export const getProducts = (req, res) => {
     const parsedLimit = Math.min(100, Math.max(1, parseInt(limit, 10)));
     const offset = (parsedPage - 1) * parsedLimit;
 
-    // Get total count
-    const countQuery = `SELECT COUNT(*) as count FROM (${query})`;
-    const totalCount = db.prepare(countQuery).get(...params).count;
+    // Count query
+    const countSql = `SELECT COUNT(*) as count FROM (${sql}) as subquery`;
+    const countRow = await queryOne(countSql, params);
+    const totalCount = parseInt(countRow?.count || 0, 10);
 
-    query += ` LIMIT ? OFFSET ?`;
-    params.push(parsedLimit, offset);
+    sql += ` LIMIT ? OFFSET ?`;
+    const pageParams = [...params, parsedLimit, offset];
 
-    const products = db.prepare(query).all(...params);
+    const products = await queryAll(sql, pageParams);
 
     const formatted = products.map(p => ({
       ...p,
-      rating_count: p.actual_review_count !== undefined && p.actual_review_count !== null ? p.actual_review_count : p.rating_count,
-      key_features: p.key_features ? JSON.parse(p.key_features) : [],
-      specs: p.specs ? JSON.parse(p.specs) : {},
+      price: Number(p.price),
+      sale_price: p.sale_price !== null ? Number(p.sale_price) : null,
+      rating_average: Number(p.rating_average || 5),
+      rating_count: p.actual_review_count !== undefined && p.actual_review_count !== null ? Number(p.actual_review_count) : Number(p.rating_count),
+      key_features: Array.isArray(p.key_features) ? p.key_features : (typeof p.key_features === 'string' ? JSON.parse(p.key_features) : []),
+      specs: typeof p.specs === 'object' && p.specs !== null ? p.specs : (typeof p.specs === 'string' ? JSON.parse(p.specs) : {}),
       is_in_stock: Boolean(p.is_in_stock),
       is_featured: Boolean(p.is_featured),
       is_trending: Boolean(p.is_trending)
@@ -119,7 +123,7 @@ export const getProducts = (req, res) => {
         page: parsedPage,
         limit: parsedLimit,
         total: totalCount,
-        totalPages: Math.ceil(totalCount / parsedLimit)
+        totalPages: Math.ceil(totalCount / parsedLimit) || 1
       }
     });
   } catch (error) {
@@ -128,57 +132,66 @@ export const getProducts = (req, res) => {
   }
 };
 
-export const getProductBySlug = (req, res) => {
+export const getProductBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
 
-    const product = db.prepare(`
-      SELECT 
-        p.*, 
-        c.name as category_name, 
-        c.slug as category_slug
-      FROM products p
-      LEFT JOIN categories c ON p.category_id = c.id
-      WHERE p.slug = ? OR p.slug LIKE ? OR p.id = ?
-    `).get(slug, `${slug}%`, isNaN(Number(slug)) ? -1 : Number(slug));
+    const isNumeric = !isNaN(Number(slug)) && Number.isInteger(Number(slug));
+    let product;
+
+    if (isNumeric) {
+      product = await queryOne(`
+        SELECT p.*, c.name as category_name, c.slug as category_slug
+        FROM products p
+        LEFT JOIN categories c ON p.category_id = c.id
+        WHERE p.id = ?
+      `, [Number(slug)]);
+    } else {
+      product = await queryOne(`
+        SELECT p.*, c.name as category_name, c.slug as category_slug
+        FROM products p
+        LEFT JOIN categories c ON p.category_id = c.id
+        WHERE p.slug = ? OR p.slug ILIKE ?
+      `, [slug, `${slug}%`]);
+    }
 
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found.' });
     }
 
     // Fetch images
-    const images = db.prepare(`
+    const images = await queryAll(`
       SELECT id, url, alt_text, is_primary 
       FROM product_images 
       WHERE product_id = ? 
       ORDER BY is_primary DESC, display_order ASC
-    `).all(product.id);
+    `, [product.id]);
 
     // Fetch variants
-    const variants = db.prepare(`
+    const variants = await queryAll(`
       SELECT id, variant_type, variant_name, price_modifier, stock_quantity, image_url 
       FROM product_variants 
       WHERE product_id = ?
-    `).all(product.id);
+    `, [product.id]);
 
     // Fetch reviews
-    const rawReviews = db.prepare(`
+    const rawReviews = await queryAll(`
       SELECT id, user_name, rating, comment, city, images, verified_purchase, created_at 
       FROM reviews 
       WHERE product_id = ? 
       ORDER BY id DESC
-    `).all(product.id);
+    `, [product.id]);
 
     const reviews = rawReviews.map((r) => {
       let imgList = [];
-      if (typeof r.images === 'string') {
+      if (Array.isArray(r.images)) {
+        imgList = r.images;
+      } else if (typeof r.images === 'string') {
         try {
           imgList = JSON.parse(r.images);
         } catch {
           imgList = [];
         }
-      } else if (Array.isArray(r.images)) {
-        imgList = r.images;
       }
       return {
         ...r,
@@ -186,8 +199,8 @@ export const getProductBySlug = (req, res) => {
       };
     });
 
-    // Fetch related products (up to 4 from same category)
-    const relatedProducts = db.prepare(`
+    // Related products
+    const relatedProducts = await queryAll(`
       SELECT 
         p.*, 
         c.name as category_name, 
@@ -197,19 +210,26 @@ export const getProductBySlug = (req, res) => {
       LEFT JOIN categories c ON p.category_id = c.id
       WHERE p.category_id = ? AND p.id != ?
       LIMIT 4
-    `).all(product.category_id, product.id);
+    `, [product.category_id, product.id]);
 
     const fullProduct = {
       ...product,
-      key_features: product.key_features ? JSON.parse(product.key_features) : [],
-      specs: product.specs ? JSON.parse(product.specs) : {},
+      price: Number(product.price),
+      sale_price: product.sale_price !== null ? Number(product.sale_price) : null,
+      rating_average: Number(product.rating_average || 5),
+      key_features: Array.isArray(product.key_features) ? product.key_features : (typeof product.key_features === 'string' ? JSON.parse(product.key_features) : []),
+      specs: typeof product.specs === 'object' && product.specs !== null ? product.specs : (typeof product.specs === 'string' ? JSON.parse(product.specs) : {}),
       is_in_stock: Boolean(product.is_in_stock),
       is_featured: Boolean(product.is_featured),
       is_trending: Boolean(product.is_trending),
-      images: images.length > 0 ? images : [{ url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80', is_primary: 1 }],
-      variants,
+      images: images.length > 0 ? images : [{ url: '/uploads/nova-2-in-1-hair-straightener-curler-main.webp', is_primary: true }],
+      variants: variants.map(v => ({ ...v, price_modifier: Number(v.price_modifier || 0) })),
       reviews,
-      relatedProducts
+      relatedProducts: relatedProducts.map(p => ({
+        ...p,
+        price: Number(p.price),
+        sale_price: p.sale_price !== null ? Number(p.sale_price) : null
+      }))
     };
 
     res.json({ success: true, data: fullProduct });
@@ -219,29 +239,30 @@ export const getProductBySlug = (req, res) => {
   }
 };
 
-export const getCategories = (req, res) => {
+export const getCategories = async (req, res) => {
   try {
-    const categories = db.prepare(`
+    const categories = await queryAll(`
       SELECT c.*, COUNT(p.id) as product_count
       FROM categories c
       LEFT JOIN products p ON c.id = p.category_id
       GROUP BY c.id
       ORDER BY c.display_order ASC, c.id ASC
-    `).all();
+    `);
 
-    res.json({ success: true, data: categories });
+    res.json({ success: true, data: categories.map(c => ({ ...c, product_count: Number(c.product_count || 0) })) });
   } catch (error) {
+    console.error('Error fetching categories:', error);
     res.status(500).json({ success: false, message: 'Failed to retrieve categories.' });
   }
 };
 
-export const getBanners = (req, res) => {
+export const getBanners = async (req, res) => {
   try {
-    const banners = db.prepare(`
+    const banners = await queryAll(`
       SELECT * FROM banners 
-      WHERE is_active = 1 
-      ORDER BY display_order ASC, id ASC
-    `).all();
+      WHERE is_active = true 
+      ORDER BY id ASC
+    `);
 
     res.json({ success: true, data: banners });
   } catch (error) {
@@ -249,31 +270,33 @@ export const getBanners = (req, res) => {
   }
 };
 
-export const verifyCoupon = (req, res) => {
+export const verifyCoupon = async (req, res) => {
   try {
     const { code, subtotal } = req.body;
     if (!code) {
       return res.status(400).json({ success: false, message: 'Coupon code is required.' });
     }
 
-    const coupon = db.prepare('SELECT * FROM coupons WHERE UPPER(code) = UPPER(?) AND is_active = 1').get(code.trim());
+    const coupon = await queryOne('SELECT * FROM coupons WHERE UPPER(code) = UPPER(?) AND is_active = true', [code.trim()]);
     if (!coupon) {
       return res.status(404).json({ success: false, message: 'Invalid or expired coupon code.' });
     }
 
     const sub = Number(subtotal) || 0;
-    if (sub < coupon.min_spend) {
+    const minSpend = Number(coupon.min_spend || 0);
+
+    if (sub < minSpend) {
       return res.status(400).json({
         success: false,
-        message: `This coupon requires a minimum cart value of Rs. ${coupon.min_spend.toLocaleString()}.`
+        message: `This coupon requires a minimum cart value of Rs. ${minSpend.toLocaleString()}.`
       });
     }
 
     let discount = 0;
     if (coupon.discount_type === 'percentage') {
-      discount = Math.round((sub * coupon.discount_value) / 100);
+      discount = Math.round((sub * Number(coupon.discount_value)) / 100);
     } else {
-      discount = Math.min(coupon.discount_value, sub);
+      discount = Math.min(Number(coupon.discount_value), sub);
     }
 
     res.json({
@@ -282,7 +305,7 @@ export const verifyCoupon = (req, res) => {
       coupon: {
         code: coupon.code,
         discountType: coupon.discount_type,
-        discountValue: coupon.discount_value,
+        discountValue: Number(coupon.discount_value),
         calculatedDiscount: discount
       }
     });
@@ -291,7 +314,7 @@ export const verifyCoupon = (req, res) => {
   }
 };
 
-export const submitReview = (req, res) => {
+export const submitReview = async (req, res) => {
   try {
     const { productId, userName, rating, comment, city, images = [] } = req.body;
 
@@ -302,23 +325,26 @@ export const submitReview = (req, res) => {
     const numericRating = Math.min(5, Math.max(1, parseInt(rating, 10)));
     const imagesJson = JSON.stringify(Array.isArray(images) ? images : []);
 
-    db.prepare(`
+    await execute(`
       INSERT INTO reviews (product_id, user_name, rating, comment, city, images, verified_purchase)
-      VALUES (?, ?, ?, ?, ?, ?, 1)
-    `).run(productId, userName.trim(), numericRating, comment.trim(), city ? city.trim() : 'Karachi', imagesJson);
+      VALUES (?, ?, ?, ?, ?, ?, true)
+    `, [productId, userName.trim(), numericRating, comment.trim(), city ? city.trim() : 'Karachi', imagesJson]);
 
     // Recalculate average rating
-    const stats = db.prepare(`
+    const stats = await queryOne(`
       SELECT AVG(rating) as avg_rating, COUNT(*) as count 
       FROM reviews 
       WHERE product_id = ?
-    `).get(productId);
+    `, [productId]);
 
-    db.prepare(`
+    const avg = Number(stats?.avg_rating || 5);
+    const count = Number(stats?.count || 1);
+
+    await execute(`
       UPDATE products 
       SET rating_average = ?, rating_count = ? 
       WHERE id = ?
-    `).run(Number(stats.avg_rating.toFixed(1)), stats.count, productId);
+    `, [Number(avg.toFixed(1)), count, productId]);
 
     res.status(201).json({ success: true, message: 'Review submitted successfully.' });
   } catch (error) {

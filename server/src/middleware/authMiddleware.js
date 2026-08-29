@@ -1,9 +1,9 @@
 import jwt from 'jsonwebtoken';
-import { db } from '../database/db.js';
+import { queryOne } from '../database/db.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dkart-production-secret-key-2026';
 
-export function requireAuth(req, res, next) {
+export async function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ success: false, message: 'Authentication required. Please log in.' });
@@ -12,7 +12,7 @@ export function requireAuth(req, res, next) {
   const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const user = db.prepare('SELECT id, name, email, phone, role FROM users WHERE id = ?').get(decoded.id);
+    const user = await queryOne('SELECT id, name, email, phone, role FROM users WHERE id = ?', [decoded.id]);
     if (!user) {
       return res.status(401).json({ success: false, message: 'User account not found.' });
     }
@@ -32,13 +32,13 @@ export function requireAdmin(req, res, next) {
   });
 }
 
-export function optionalAuth(req, res, next) {
+export async function optionalAuth(req, res, next) {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.split(' ')[1];
     try {
       const decoded = jwt.verify(token, JWT_SECRET);
-      const user = db.prepare('SELECT id, name, email, phone, role FROM users WHERE id = ?').get(decoded.id);
+      const user = await queryOne('SELECT id, name, email, phone, role FROM users WHERE id = ?', [decoded.id]);
       if (user) {
         req.user = user;
       }
