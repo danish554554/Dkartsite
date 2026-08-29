@@ -100,10 +100,11 @@ function generateCustomerEmailHtml(order, items) {
     const rawImg = item.image || item.image_url || item.primary_image || '';
     let fullImgUrl = 'https://www.dkart.pk/logo.png';
     if (rawImg) {
-      if (rawImg.startsWith('http')) {
-        fullImgUrl = rawImg;
+      const cleanImg = rawImg.replace(/\.webp$/i, '.jpg');
+      if (cleanImg.startsWith('http')) {
+        fullImgUrl = cleanImg;
       } else {
-        fullImgUrl = `https://www.dkart.pk${rawImg.startsWith('/') ? '' : '/'}${rawImg}`;
+        fullImgUrl = `https://www.dkart.pk${cleanImg.startsWith('/') ? '' : '/'}${cleanImg}`;
       }
     }
 
@@ -318,8 +319,9 @@ function generateAdminEmailHtml(order, items) {
     const rawImg = item.image || item.image_url || item.primary_image || '';
     let fullImgUrl = 'https://www.dkart.pk/logo.png';
     if (rawImg) {
-      if (rawImg.startsWith('http')) fullImgUrl = rawImg;
-      else fullImgUrl = `https://www.dkart.pk${rawImg.startsWith('/') ? '' : '/'}${rawImg}`;
+      const cleanImg = rawImg.replace(/\.webp$/i, '.jpg');
+      if (cleanImg.startsWith('http')) fullImgUrl = cleanImg;
+      else fullImgUrl = `https://www.dkart.pk${cleanImg.startsWith('/') ? '' : '/'}${cleanImg}`;
     }
 
     return `
