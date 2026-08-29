@@ -1,4 +1,9 @@
-let rawBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').trim().replace(/\/+$/, '');
+let rawBase = (
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+    ? 'https://dkartsite.onrender.com/api'
+    : 'http://localhost:5000/api')
+).trim().replace(/\/+$/, '');
 const API_BASE_URL = rawBase.endsWith('/api') ? rawBase : `${rawBase}/api`;
 
 export async function fetchApi(endpoint, options = {}, retries = 3) {
