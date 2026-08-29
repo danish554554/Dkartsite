@@ -16,7 +16,8 @@ export async function fetchApi(endpoint, options = {}, retries = 3) {
     ...options.headers,
   };
 
-  const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+  const cacheBuster = `${endpoint.includes('?') ? '&' : '?'}_t=${Date.now()}`;
+  const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}${cacheBuster}`;
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
