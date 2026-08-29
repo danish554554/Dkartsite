@@ -96,13 +96,24 @@ function generateCustomerEmailHtml(order, items) {
     addressObj = { address: order.shipping_address };
   }
 
-  const itemsHtml = items.map(item => `
+  const itemsHtml = items.map(item => {
+    const rawImg = item.image || item.image_url || item.primary_image || '';
+    let fullImgUrl = 'https://www.dkart.pk/logo.png';
+    if (rawImg) {
+      if (rawImg.startsWith('http')) {
+        fullImgUrl = rawImg;
+      } else {
+        fullImgUrl = `https://www.dkart.pk${rawImg.startsWith('/') ? '' : '/'}${rawImg}`;
+      }
+    }
+
+    return `
     <tr>
       <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0;">
         <table cellpadding="0" cellspacing="0" border="0" width="100%">
           <tr>
             <td width="64" valign="top" style="padding-right: 14px;">
-              <img src="${item.image_url ? (item.image_url.startsWith('http') ? item.image_url : `https://dkartsite.onrender.com${item.image_url}`) : 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'}" 
+              <img src="${fullImgUrl}" 
                    alt="${item.title}" 
                    width="60" 
                    height="60" 
@@ -112,17 +123,18 @@ function generateCustomerEmailHtml(order, items) {
               <div style="font-size: 14px; font-weight: 700; color: #1927F4; line-height: 1.3; margin-bottom: 4px;">
                 ${item.title}
               </div>
-              ${item.variant_name ? `<div style="font-size: 12px; color: #666; margin-bottom: 3px;">Variant: <strong>${item.variant_name}</strong></div>` : ''}
-              <div style="font-size: 12px; color: #888;">Qty: ${item.quantity} × Rs. ${Number(item.price).toLocaleString()}</div>
+              ${item.variantName || item.variant_name ? `<div style="font-size: 12px; color: #666; margin-bottom: 3px;">Variant: <strong>${item.variantName || item.variant_name}</strong></div>` : ''}
+              <div style="font-size: 12px; color: #888;">Qty: ${item.quantity} × Rs. ${Number(item.price || item.unitPrice || 0).toLocaleString()}</div>
             </td>
             <td width="90" valign="top" align="right" style="font-size: 14px; font-weight: 800; color: #222;">
-              Rs. ${(Number(item.price) * item.quantity).toLocaleString()}
+              Rs. ${(Number(item.price || item.unitPrice || 0) * item.quantity).toLocaleString()}
             </td>
           </tr>
         </table>
       </td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
 
   return `
 <!DOCTYPE html>
@@ -302,17 +314,29 @@ function generateAdminEmailHtml(order, items) {
     addressObj = { address: order.shipping_address };
   }
 
-  const itemsHtml = items.map(item => `
+  const itemsHtml = items.map(item => {
+    const rawImg = item.image || item.image_url || item.primary_image || '';
+    let fullImgUrl = 'https://www.dkart.pk/logo.png';
+    if (rawImg) {
+      if (rawImg.startsWith('http')) fullImgUrl = rawImg;
+      else fullImgUrl = `https://www.dkart.pk${rawImg.startsWith('/') ? '' : '/'}${rawImg}`;
+    }
+
+    return `
     <tr>
+      <td width="48" style="padding: 8px 10px 8px 0; border-bottom: 1px solid #eee;">
+        <img src="${fullImgUrl}" width="42" height="42" style="border-radius: 6px; object-fit: cover; border: 1px solid #eee; display: block;" alt="" />
+      </td>
       <td style="padding: 8px 0; border-bottom: 1px solid #eee; font-size: 13px;">
-        <strong>${item.title}</strong> ${item.variant_name ? `(${item.variant_name})` : ''} 
+        <strong>${item.title}</strong> ${item.variantName || item.variant_name ? `(${item.variantName || item.variant_name})` : ''} 
         <span style="color: #888;">× ${item.quantity}</span>
       </td>
       <td align="right" style="padding: 8px 0; border-bottom: 1px solid #eee; font-size: 13px; font-weight: 700;">
-        Rs. ${(Number(item.price) * item.quantity).toLocaleString()}
+        Rs. ${(Number(item.price || item.unitPrice || 0) * item.quantity).toLocaleString()}
       </td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
 
   return `
 <!DOCTYPE html>
