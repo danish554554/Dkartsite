@@ -86,7 +86,7 @@ function getTransporter() {
 /**
  * Generate luxury responsive HTML email for the Customer
  */
-function generateCustomerEmailHtml(order, items) {
+export function generateCustomerEmailHtml(order, items) {
   let addressObj = {};
   try {
     addressObj = typeof order.shipping_address === 'string' 
