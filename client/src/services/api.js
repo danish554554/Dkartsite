@@ -6,7 +6,10 @@ let rawBase = (
 ).trim().replace(/\/+$/, '');
 const API_BASE_URL = rawBase.endsWith('/api') ? rawBase : `${rawBase}/api`;
 
+const memoryCache = new Map();
+
 export async function fetchApi(endpoint, options = {}, retries = 3) {
+  const isGet = !options.method || options.method.toUpperCase() === 'GET';
   const token = localStorage.getItem('dkart_token');
   const headers = {
     'Content-Type': 'application/json',
@@ -14,13 +17,50 @@ export async function fetchApi(endpoint, options = {}, retries = 3) {
     ...options.headers,
   };
 
-  const cacheBuster = `${endpoint.includes('?') ? '&' : '?'}_t=${Date.now()}`;
-  const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}${cacheBuster}`;
+  const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+
+  // Instant Cache Lookup for fast GET requests (Categories, Products, Banners)
+  if (isGet && !token) {
+    const mem = memoryCache.get(url);
+    if (mem && (Date.now() - mem.timestamp < 300000)) { // 5 minutes fresh
+      // Background revalidation if older than 30s
+      if (Date.now() - mem.timestamp > 30000) {
+        fetch(url, { headers })
+          .then(r => r.json())
+          .then(fresh => {
+            if (fresh && fresh.success) {
+              memoryCache.set(url, { data: fresh, timestamp: Date.now() });
+              try { localStorage.setItem(`dkart_cache_${url}`, JSON.stringify({ data: fresh, timestamp: Date.now() })); } catch(e) {}
+            }
+          }).catch(() => {});
+      }
+      return mem.data;
+    }
+
+    try {
+      const stored = localStorage.getItem(`dkart_cache_${url}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && parsed.data) {
+          memoryCache.set(url, parsed);
+          // Return cached data immediately, then revalidate in background
+          fetch(url, { headers })
+            .then(r => r.json())
+            .then(fresh => {
+              if (fresh && fresh.success) {
+                memoryCache.set(url, { data: fresh, timestamp: Date.now() });
+                try { localStorage.setItem(`dkart_cache_${url}`, JSON.stringify({ data: fresh, timestamp: Date.now() })); } catch(e) {}
+              }
+            }).catch(() => {});
+          return parsed.data;
+        }
+      }
+    } catch (e) {}
+  }
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       const res = await fetch(url, {
-        cache: 'no-store',
         ...options,
         headers,
       });
@@ -29,12 +69,30 @@ export async function fetchApi(endpoint, options = {}, retries = 3) {
       if (!res.ok) {
         throw new Error(data.message || 'Something went wrong. Please try again.');
       }
+
+      if (isGet && !token && data && data.success) {
+        memoryCache.set(url, { data, timestamp: Date.now() });
+        try {
+          localStorage.setItem(`dkart_cache_${url}`, JSON.stringify({ data, timestamp: Date.now() }));
+        } catch (e) {}
+      }
+
       return data;
     } catch (error) {
-      if (attempt < retries && (!options.method || options.method === 'GET')) {
-        console.log(`[Dkart API] Waiting for server cold start, retrying ${endpoint} (attempt ${attempt + 1}/${retries})...`);
-        await new Promise((r) => setTimeout(r, 2500));
+      if (attempt < retries && isGet) {
+        console.log(`[Dkart API] Retrying ${endpoint} (${attempt + 1}/${retries})...`);
+        await new Promise((r) => setTimeout(r, 1500));
         continue;
+      }
+      // Return stale cache if network fails
+      if (isGet && !token) {
+        try {
+          const stored = localStorage.getItem(`dkart_cache_${url}`);
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed && parsed.data) return parsed.data;
+          }
+        } catch (e) {}
       }
       console.error(`API Error on ${endpoint}:`, error);
       throw error;

@@ -8,34 +8,50 @@ import PromoStrip from '../components/home/PromoStrip';
 import ProductCard from '../components/common/ProductCard';
 import { api } from '../services/api';
 
+import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/initialCatalog';
+
 export default function HomePage() {
-  const [categories, setCategories] = useState([]);
-  const [featuredProducts, setFeaturedProducts] = useState([]);
-  const [trendingProducts, setTrendingProducts] = useState([]);
-  const [bestsellerProducts, setBestsellerProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // 1. Instant 0ms Pre-Hydrated State (loads instantly from bundle / local cache)
+  const [categories, setCategories] = useState(() => {
+    try {
+      const cached = localStorage.getItem('dkart_home_cats');
+      return cached ? JSON.parse(cached) : INITIAL_CATEGORIES;
+    } catch (e) {
+      return INITIAL_CATEGORIES;
+    }
+  });
+
+  const [featuredProducts, setFeaturedProducts] = useState(() => {
+    try {
+      const cached = localStorage.getItem('dkart_home_featured');
+      return cached ? JSON.parse(cached) : INITIAL_PRODUCTS.slice(0, 8);
+    } catch (e) {
+      return INITIAL_PRODUCTS.slice(0, 8);
+    }
+  });
+
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     async function loadHomeData() {
       try {
-        setLoading(true);
-        const [catsRes, featRes, trendRes] = await Promise.all([
+        // Fast parallel fetch to revalidate with Supabase in the background
+        const [catsRes, prodsRes] = await Promise.all([
           api.getCategories(),
-          api.getProducts({ featured: true, limit: 4 }),
-          api.getProducts({ trending: true, limit: 8 })
+          api.getProducts({ limit: 12 })
         ]);
 
-        if (catsRes.success) setCategories(catsRes.data);
-        if (featRes.success) setFeaturedProducts(featRes.data);
-        if (trendRes.success) {
-          setTrendingProducts(trendRes.data);
-          // Split some as bestsellers
-          setBestsellerProducts(trendRes.data.filter((p) => p.badge === 'Bestseller' || p.rating_average >= 4.8));
+        if (catsRes && catsRes.success && catsRes.data?.length > 0) {
+          setCategories(catsRes.data);
+          try { localStorage.setItem('dkart_home_cats', JSON.stringify(catsRes.data)); } catch (e) {}
+        }
+
+        if (prodsRes && prodsRes.success && prodsRes.data?.length > 0) {
+          setFeaturedProducts(prodsRes.data.slice(0, 8));
+          try { localStorage.setItem('dkart_home_featured', JSON.stringify(prodsRes.data.slice(0, 8))); } catch (e) {}
         }
       } catch (err) {
-        console.error('Error loading homepage data:', err);
-      } finally {
-        setLoading(false);
+        console.error('Error refreshing homepage data:', err);
       }
     }
     loadHomeData();
@@ -72,60 +88,17 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {/* Product Grid */}
-          {loading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              {[1, 2, 3, 4].map((n) => (
-                <div key={n} className="rounded-2xl border border-gray-100 p-4 space-y-3 animate-pulse bg-gray-50">
-                  <div className="aspect-square bg-gray-200 rounded-xl" />
-                  <div className="h-4 bg-gray-200 rounded w-3/4" />
-                  <div className="h-4 bg-gray-200 rounded w-1/2" />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-6">
-              {featuredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* 4. PROMO STRIP WITH COUNTDOWN */}
-      <PromoStrip />
-
-      {/* 5. EXPLORE NEW ARRIVALS & TRENDING */}
-      <section className="py-14 bg-[#F8F9FB]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
-            <div>
-              <div className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-dkart-blue mb-1">
-                <Sparkles size={15} className="text-dkart-orange" />
-                <span>Next-Gen Lifestyle Innovations</span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-black text-dkart-charcoal tracking-tight">
-                New Arrivals & Featured Deals
-              </h2>
-            </div>
-
-            <Link
-              to="/shop"
-              className="text-xs sm:text-sm font-bold text-dkart-blue hover:text-dkart-blue-hover flex items-center gap-1"
-            >
-              <span>Explore All Products</span>
-              <ArrowRight size={16} />
-            </Link>
-          </div>
-
+          {/* Instant Product Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-6">
-            {trendingProducts.map((product) => (
+            {featuredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
         </div>
       </section>
+
+      {/* 4. PROMO STRIP WITH COUNTDOWN */}
+      <PromoStrip />
 
       {/* 6. TRUST BUILDING SECTION */}
       <TrustSection />

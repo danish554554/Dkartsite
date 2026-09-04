@@ -116,6 +116,7 @@ export const getProducts = async (req, res) => {
       is_trending: Boolean(p.is_trending)
     }));
 
+    res.set('Cache-Control', 'public, max-age=180, s-maxage=600, stale-while-revalidate=86400');
     res.json({
       success: true,
       data: formatted,

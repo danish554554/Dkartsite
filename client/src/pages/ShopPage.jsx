@@ -12,13 +12,31 @@ import {
 import ProductCard from '../components/common/ProductCard';
 import { api } from '../services/api';
 import { formatPrice } from '../utils/helpers';
+import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/initialCatalog';
 
 export default function ShopPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Instant 0ms Pre-Hydrated State
+  const [products, setProducts] = useState(() => {
+    try {
+      const cached = localStorage.getItem('dkart_cache_shop_all');
+      return cached ? JSON.parse(cached) : INITIAL_PRODUCTS;
+    } catch (e) {
+      return INITIAL_PRODUCTS;
+    }
+  });
+
+  const [categories, setCategories] = useState(() => {
+    try {
+      const cached = localStorage.getItem('dkart_home_cats');
+      return cached ? JSON.parse(cached) : INITIAL_CATEGORIES;
+    } catch (e) {
+      return INITIAL_CATEGORIES;
+    }
+  });
+
+  const [loading, setLoading] = useState(false);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
   // Active filter state
