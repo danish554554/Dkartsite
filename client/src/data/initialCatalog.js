@@ -40,7 +40,7 @@ export const INITIAL_PRODUCTS = [
     "rating_average": 5,
     "rating_count": 6,
     "actual_review_count": 6,
-    "primary_image": "http://dkartsite.onrender.com/uploads/dkart-imgi-59-537b7c9898062c57e471c9c8ecc99174-1788502310173-422.webp",
+    "primary_image": "/uploads/yes-finishing-hair-remover-main.webp",
     "is_featured": true,
     "is_trending": true
   },
@@ -173,6 +173,28 @@ export const INITIAL_PRODUCTS = [
     "rating_count": 7,
     "actual_review_count": 7,
     "primary_image": "/uploads/eyebrow-trimmer-facial-remover-main.webp",
+    "is_featured": true,
+    "is_trending": true
+  },
+  {
+    "id": 132,
+    "title": "Electric Razor for Women – Waterproof Bikini Trimmer, Facial Shaver for Underarms, Legs & Body, Pink/Purple",
+    "slug": "electric-razor-women-waterproof-bikini-trimmer",
+    "tagline": "IPX7 Waterproof Wet & Dry Cordless Shaver with 3-in-1 Floating Foil Blades for Sensitive Skin",
+    "description": "Experience effortless, salon-smooth grooming from head to toe with the Electric Razor for Women. Designed specifically for sensitive female contours, this gentle all-in-one shaver glides smoothly over curves to remove unwanted body hair without painful tugging, razor burns, redness, or stubble bumps.\n\nFeaturing an advanced 3-in-1 high-speed floating blade system, it combines a straight blade for arms and legs, a curved foil blade for underarms and bikini lines, and a floating mesh foil for close, silky-soft finishes. The hypoallergenic stainless steel blades protect delicate skin, making it safe for daily use on even the most sensitive skin types.\n\nWith full IPX7 waterproof protection, you can comfortably use it dry for quick morning touch-ups or wet in the shower or bath with your favorite shaving foam or gel. It easily rinses clean under running water.\n\nCompact, cordless, and lightweight, it charges quickly via standard USB so you never need to purchase disposable batteries. Available in chic Pink and Purple finishes, this stylish electric trimmer easily fits in your travel pouch, gym bag, or vanity table for smooth, confident skin wherever you go.",
+    "category_id": 25,
+    "category_name": "Personal Care & Beauty",
+    "category_slug": "personal-care",
+    "price": 3299,
+    "sale_price": 2299,
+    "discount_percentage": 30,
+    "badge": "NEW ARRIVAL",
+    "stock_quantity": 75,
+    "is_in_stock": true,
+    "rating_average": 4.9,
+    "rating_count": 6,
+    "actual_review_count": 6,
+    "primary_image": "/uploads/electric-razor-women-waterproof-main.webp",
     "is_featured": true,
     "is_trending": true
   }
