@@ -3,7 +3,12 @@ import { Link } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
 
 export default function CategorySection({ categories = [] }) {
-  if (!categories || categories.length === 0) return null;
+  // Only display categories that currently have active products
+  const activeCategories = (categories || []).filter(
+    (c) => Number(c.product_count || c.actual_product_count || 0) > 0
+  );
+
+  if (activeCategories.length === 0) return null;
 
   return (
     <section className="py-12 md:py-16 bg-[#FBFBFC]">
@@ -26,34 +31,40 @@ export default function CategorySection({ categories = [] }) {
           </Link>
         </div>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-5">
-          {categories.map((category) => (
+        {/* Dynamic Responsive Categories Grid */}
+        <div className={`grid gap-4 sm:gap-6 ${
+          activeCategories.length === 3
+            ? 'grid-cols-1 sm:grid-cols-3'
+            : activeCategories.length <= 4
+            ? 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-4'
+            : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5'
+        }`}>
+          {activeCategories.map((category) => (
             <Link
               key={category.id}
               to={`/shop?category=${category.slug}`}
-              className="group relative rounded-2xl overflow-hidden bg-white border border-gray-200/80 shadow-xs hover:shadow-card-hover transition-all duration-300 flex flex-col justify-end p-4 min-h-[170px] sm:min-h-[220px]"
+              className="group relative rounded-2xl overflow-hidden bg-slate-900 border border-gray-200/80 shadow-xs hover:shadow-card-hover transition-all duration-300 flex flex-col justify-end p-5 min-h-[200px] sm:min-h-[250px]"
             >
               {/* Category Background Image */}
-              <div className="absolute inset-0 z-0">
+              <div className="absolute inset-0 z-0 overflow-hidden">
                 <img
                   src={category.image_url}
                   alt={`${category.name} collection - Shop online at Dkart Pakistan`}
                   loading="lazy"
                   decoding="async"
-                  width="300"
-                  height="220"
-                  className="w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-500 ease-out"
+                  width="400"
+                  height="260"
+                  className="w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-700 ease-out"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-900/40 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent"></div>
               </div>
 
               {/* Category Text & Count */}
               <div className="relative z-10 space-y-1">
-                <p className="text-[11px] font-semibold text-amber-300">
-                  {category.product_count || 10}+ Products
-                </p>
-                <h3 className="text-sm sm:text-base font-extrabold text-white leading-snug group-hover:text-blue-200 transition">
+                <span className="inline-block text-[11px] font-bold uppercase tracking-wider text-amber-300 bg-amber-400/20 px-2 py-0.5 rounded-md backdrop-blur-xs">
+                  {category.product_count} {Number(category.product_count) === 1 ? 'Product' : 'Products'}
+                </span>
+                <h3 className="text-base sm:text-lg font-black text-white leading-snug group-hover:text-blue-200 transition">
                   {category.name}
                 </h3>
               </div>

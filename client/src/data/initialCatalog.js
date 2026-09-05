@@ -228,39 +228,23 @@ export const INITIAL_CATEGORIES = [
     "name": "Hair Styling & Care",
     "slug": "hair-styling",
     "description": "Premium blow dryers, hair straighteners, curlers & styling brushes.",
-    "image_url": "/uploads/hair-dryer-brush-3-in-1-main.webp",
-    "product_count": 10
+    "image_url": "/uploads/category-hair-styling.webp",
+    "product_count": 2
   },
   {
     "id": 25,
     "name": "Personal Care & Beauty",
     "slug": "personal-care",
     "description": "Electric groomers, hair removers & personal stylers",
-    "image_url": "/uploads/kemei-rechargeable-hair-remover-main.webp",
-    "product_count": 10
-  },
-  {
-    "id": 28,
-    "name": "Smart Lifestyle Tech",
-    "slug": "smart-tech",
-    "description": "Smartwatches, wireless earbuds and everyday life innovations.",
-    "image_url": "/uploads/hair-dryer-brush-3-in-1-main.webp",
-    "product_count": 10
-  },
-  {
-    "id": 29,
-    "name": "Home & Daily Essentials",
-    "slug": "home-essentials",
-    "description": "Convenient home gadgets and lifestyle tools.",
-    "image_url": "/uploads/hair-dryer-brush-3-in-1-main.webp",
-    "product_count": 10
+    "image_url": "/uploads/category-personal-care.webp",
+    "product_count": 6
   },
   {
     "id": 30,
     "name": "Household Items",
     "slug": "household-items",
     "description": "Premium kitchenware, cookware & essential home appliances",
-    "image_url": "/uploads/stainless-steel-deep-fryer-pot-main.webp",
-    "product_count": 10
+    "image_url": "/uploads/category-household-items.webp",
+    "product_count": 2
   }
 ];

@@ -18,8 +18,6 @@ async function exportInitial() {
       ORDER BY p.id ASC
     `);
 
-    const cRes = await client.query('SELECT * FROM categories ORDER BY id ASC');
-
     const formattedProducts = pRes.rows.map(p => ({
       id: p.id,
       title: p.title,
@@ -43,13 +41,20 @@ async function exportInitial() {
       is_trending: Boolean(p.is_trending)
     }));
 
+    const cRes = await client.query(`
+      SELECT c.*, (SELECT COUNT(*) FROM products WHERE category_id = c.id) as product_count
+      FROM categories c
+      WHERE (SELECT COUNT(*) FROM products WHERE category_id = c.id) > 0
+      ORDER BY c.id ASC
+    `);
+
     const formattedCategories = cRes.rows.map(c => ({
       id: c.id,
       name: c.name,
       slug: c.slug,
       description: c.description,
       image_url: c.image_url || '/uploads/hair-dryer-brush-3-in-1-main.webp',
-      product_count: 10
+      product_count: Number(c.product_count)
     }));
 
     const content = `// Auto-generated instant cache for instant 0ms page loads

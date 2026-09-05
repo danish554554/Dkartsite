@@ -10,7 +10,11 @@ async function buildSitemap() {
   const client = await pool.connect();
   try {
     const pRes = await client.query('SELECT slug, created_at FROM products WHERE is_in_stock = true ORDER BY id ASC');
-    const cRes = await client.query('SELECT slug FROM categories ORDER BY id ASC');
+    const cRes = await client.query(`
+      SELECT c.slug FROM categories c 
+      WHERE (SELECT COUNT(*) FROM products WHERE category_id = c.id) > 0 
+      ORDER BY c.id ASC
+    `);
 
     const today = new Date().toISOString().split('T')[0];
 
