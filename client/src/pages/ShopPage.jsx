@@ -13,6 +13,7 @@ import ProductCard from '../components/common/ProductCard';
 import { api } from '../services/api';
 import { formatPrice } from '../utils/helpers';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/initialCatalog';
+import SEO from '../components/common/SEO';
 
 export default function ShopPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -104,6 +105,11 @@ export default function ShopPage() {
 
   return (
     <div className="bg-[#F8F9FB] min-h-screen py-6 sm:py-10">
+      <SEO
+        title={currentCategory ? `${categories.find((c) => c.slug === currentCategory)?.name || 'Category'} - Buy Online at Dkart Pakistan` : 'All Products - Buy Online with Cash on Delivery | Dkart.pk'}
+        description="Browse premium personal care products, hair styling tools, and smart lifestyle tech at Dkart Pakistan. 100% genuine products with Cash on Delivery nationwide."
+        canonicalUrl={`https://www.dkart.pk/shop${currentCategory ? `?category=${currentCategory}` : ''}`}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Page Header */}
         <div className="mb-6 sm:mb-8 space-y-2">

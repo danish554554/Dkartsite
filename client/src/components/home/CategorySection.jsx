@@ -38,8 +38,11 @@ export default function CategorySection({ categories = [] }) {
               <div className="absolute inset-0 z-0">
                 <img
                   src={category.image_url}
-                  alt={category.name}
+                  alt={`${category.name} collection - Shop online at Dkart Pakistan`}
                   loading="lazy"
+                  decoding="async"
+                  width="300"
+                  height="220"
                   className="w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-500 ease-out"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-900/40 to-transparent"></div>

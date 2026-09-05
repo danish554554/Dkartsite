@@ -7,6 +7,7 @@ import TrustSection from '../components/home/TrustSection';
 import PromoStrip from '../components/home/PromoStrip';
 import ProductCard from '../components/common/ProductCard';
 import { api } from '../services/api';
+import SEO from '../components/common/SEO';
 
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/initialCatalog';
 
@@ -59,6 +60,12 @@ export default function HomePage() {
 
   return (
     <div className="space-y-0">
+      <SEO
+        title="Dkart | Pakistan's Premier Online Store – Cash on Delivery"
+        description="Shop trending hair styling tools, personal care epilators, shavers, and smart lifestyle products at Dkart.pk. Express nationwide Cash on Delivery & 7-day warranty."
+        canonicalUrl="https://www.dkart.pk/"
+        keywords="Dkart, online shopping Pakistan, hair straightener, hot air brush, ladies shaver, callus remover, cash on delivery Pakistan"
+      />
       {/* 1. HERO SLIDER */}
       <HeroBanner />
 

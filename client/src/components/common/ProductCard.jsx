@@ -72,8 +72,11 @@ export default function ProductCard({ product }) {
         <Link to={`/product/${product.slug}`} className="block w-full h-full">
           <img
             src={primaryImage}
-            alt={product.title}
+            alt={product.primary_image_alt || product.alt_text || `${product.title} - Buy Online in Pakistan`}
             loading="lazy"
+            decoding="async"
+            width="400"
+            height="400"
             className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
           />
         </Link>

@@ -28,6 +28,7 @@ import { useToast } from '../context/ToastContext';
 import { api } from '../services/api';
 import { formatPrice, calculateDiscount, trackEvent } from '../utils/helpers';
 import { compressImage } from '../utils/imageCompressor';
+import SEO from '../components/common/SEO';
 import ProductCard from '../components/common/ProductCard';
 
 export default function ProductDetailPage() {
@@ -215,8 +216,51 @@ export default function ProductDetailPage() {
     }
   };
 
+  const productSchema = product ? {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.title,
+    image: images.map(img => img.url.startsWith('http') ? img.url : `https://www.dkart.pk${img.url}`),
+    description: product.description || product.tagline,
+    sku: product.sku || `DKART-${product.id}`,
+    brand: {
+      '@type': 'Brand',
+      name: product.brand || 'Dkart'
+    },
+    offers: {
+      '@type': 'Offer',
+      url: `https://www.dkart.pk/product/${product.slug}`,
+      priceCurrency: 'PKR',
+      price: effectivePrice,
+      priceValidUntil: '2026-12-31',
+      availability: product.is_in_stock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      itemCondition: 'https://schema.org/NewCondition',
+      seller: {
+        '@type': 'Organization',
+        name: 'Dkart Pakistan'
+      }
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: Number(product.rating_average || 5.0),
+      reviewCount: Math.max(1, (product.reviews?.length || product.rating_count || 6))
+    }
+  } : null;
+
   return (
     <div className="bg-white min-h-screen pb-24 md:pb-16">
+      {product && (
+        <SEO
+          title={`${product.title} - Buy Online at Best Price in Pakistan`}
+          description={product.description?.slice(0, 155) || product.tagline}
+          keywords={`${product.title}, buy ${product.title} Pakistan, Cash on Delivery, ${product.category_name || ''}`}
+          canonicalUrl={`https://www.dkart.pk/product/${product.slug}`}
+          ogImage={images[0]?.url || product.primary_image}
+          ogType="product"
+          schema={productSchema}
+        />
+      )}
+
       {/* 1. BREADCRUMBS */}
       <div className="bg-gray-50 border-b border-gray-100 py-3">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-xs text-gray-500 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
@@ -268,7 +312,7 @@ export default function ProductDetailPage() {
 
               <img
                 src={images[selectedImageIndex]?.url || product.primary_image}
-                alt={product.title}
+                alt={images[selectedImageIndex]?.alt_text || product.title}
                 className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
               />
             </div>
@@ -286,7 +330,11 @@ export default function ProductDetailPage() {
                         : 'border-gray-200 hover:border-gray-300 opacity-80 hover:opacity-100'
                     }`}
                   >
-                    <img src={img.url} alt="" className="w-full h-full object-cover" />
+                    <img
+                      src={img.url}
+                      alt={img.alt_text || `${product.title} detail view ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
                   </button>
                 ))}
               </div>

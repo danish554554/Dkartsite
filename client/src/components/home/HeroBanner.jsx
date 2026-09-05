@@ -4,33 +4,36 @@ import { ArrowRight, ShieldCheck, Truck, Sparkles, ChevronLeft, ChevronRight } f
 
 const SLIDES = [
   {
-    badge: 'NEW ARRIVAL • 2026 EDITION',
-    title: 'Dkart Titan Pro AMOLED Watch',
-    subtitle: '1.43" Ultra HD Retina Display, Bluetooth Calling & 7-Day Battery. Flat 35% OFF this week.',
-    ctaText: 'Shop Titan Pro',
-    ctaLink: '/product/dkart-titan-pro-amoled-smartwatch',
-    priceText: 'From Rs. 6,499',
-    imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1600&q=85',
+    badge: 'VIRAL SALON ESSENTIAL',
+    title: 'One Step 3-in-1 Hair Dryer Brush & Volumizer',
+    subtitle: 'Salon blowout volume, frizz-free ceramic shine, and quick morning styling in a single step.',
+    ctaText: 'Shop Hair Dryer Brush',
+    ctaLink: '/product/3-in-1-hair-dryer-brush',
+    priceText: 'Special Price • Rs. 2,899',
+    imageUrl: '/uploads/hair-dryer-brush-3-in-1-main.webp',
+    altText: 'One Step 3-in-1 Hair Dryer Brush with oval ceramic volumizer barrel for salon blowout hair styling',
     bgGradient: 'from-slate-950 via-slate-900 to-blue-950'
   },
   {
-    badge: 'VIRAL SALON ESSENTIAL',
-    title: '3-in-1 Heated Hot Air Volumizer Brush',
-    subtitle: 'Salon-grade blowout volume, smooth shine, and quick morning styling in a single step.',
-    ctaText: 'Get Salon Hair Now',
-    ctaLink: '/product/dkart-3-in-1-hot-air-dryer-volumizer-brush',
-    priceText: 'Save 36% • Rs. 2,899',
-    imageUrl: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1600&q=85',
+    badge: 'NEW ARRIVAL • WATERPROOF',
+    title: 'Electric Razor for Women – Bikini & Body Trimmer',
+    subtitle: 'Gentle wet and dry hypoallergenic shaver for silky-smooth legs, underarms, and sensitive bikini line.',
+    ctaText: 'Shop Electric Razor',
+    ctaLink: '/product/electric-razor-women-waterproof-bikini-trimmer',
+    priceText: 'Save 25% • Rs. 1,499',
+    imageUrl: '/uploads/electric-razor-women-waterproof-main.webp',
+    altText: 'Waterproof electric razor for women with hypoallergenic floating foil head for body and bikini grooming',
     bgGradient: 'from-zinc-950 via-gray-900 to-indigo-950'
   },
   {
-    badge: 'ACTIVE NOISE CANCELLATION',
-    title: 'Dkart Pods Max Wireless ANC',
-    subtitle: '35dB Hybrid Active Noise Cancellation + Quad-mic ENC for crystal-clear calls on Pakistani roads.',
-    ctaText: 'Discover Audio',
-    ctaLink: '/product/dkart-pods-max-anc-wireless-earbuds',
-    priceText: 'Special Price • Rs. 3,799',
-    imageUrl: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=1600&q=85',
+    badge: 'BESTSELLER • PEDICURE SPA',
+    title: 'Electric Foot Callus Remover with LED Light',
+    subtitle: 'Restore cracked heels to baby-soft skin in minutes with dual-speed quartz crystal grinding rollers.',
+    ctaText: 'Shop Callus Remover',
+    ctaLink: '/product/electric-foot-callus-remover-pedicure-tool',
+    priceText: 'Save 32% • Rs. 1,299',
+    imageUrl: '/uploads/electric-foot-callus-remover-main.webp',
+    altText: 'Rechargeable electric foot callus remover and pedicure buffer with focused LED guide light',
     bgGradient: 'from-gray-950 via-slate-900 to-blue-900'
   }
 ];
@@ -53,7 +56,7 @@ export default function HeroBanner() {
       <div className="absolute inset-0 z-0">
         <img
           src={slide.imageUrl}
-          alt={slide.title}
+          alt={slide.altText || slide.title}
           className="w-full h-full object-cover object-center opacity-40 mix-blend-luminosity scale-105 transition-all duration-1000 ease-out"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-transparent"></div>
