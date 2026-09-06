@@ -33,7 +33,7 @@ export default function Footer() {
             <div className="space-y-2 text-xs text-gray-400">
               <div className="flex items-center gap-2">
                 <MapPin size={15} className="text-dkart-orange flex-shrink-0" />
-                <span>Head Office: Shahrah-e-Faisal, Karachi, Pakistan</span>
+                <span>Head Office: Sangham Town Khanna Dhak, Islamabad, Pakistan</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone size={15} className="text-dkart-orange flex-shrink-0" />
@@ -53,28 +53,18 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2.5 text-xs text-gray-400">
               <li>
+                <Link to="/shop?category=personal-care" className="hover:text-white transition">
+                  Personal Care & Beauty
+                </Link>
+              </li>
+              <li>
                 <Link to="/shop?category=hair-styling" className="hover:text-white transition">
                   Hair Styling & Care
                 </Link>
               </li>
               <li>
-                <Link to="/shop?category=personal-care" className="hover:text-white transition">
-                  Personal Care & Grooming
-                </Link>
-              </li>
-              <li>
-                <Link to="/shop?category=smart-wearables" className="hover:text-white transition">
-                  Smart Wearables & Watches
-                </Link>
-              </li>
-              <li>
-                <Link to="/shop?category=audio-sound" className="hover:text-white transition">
-                  Wireless ANC Earbuds
-                </Link>
-              </li>
-              <li>
-                <Link to="/shop?category=mobile-accessories" className="hover:text-white transition">
-                  GaN Chargers & Power Banks
+                <Link to="/shop?category=household-items" className="hover:text-white transition">
+                  Household Items
                 </Link>
               </li>
               <li>
