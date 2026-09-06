@@ -238,7 +238,29 @@ export const INITIAL_PRODUCTS = [
     "rating_average": 4.9,
     "rating_count": 7,
     "actual_review_count": 7,
-    "primary_image": "/uploads/hair-straightener-brush-2in1-main.webp",
+    "primary_image": "http://dkartsite.onrender.com/uploads/dkart-whatsapp-image-2025-06-13-at-6-51-23-pm-1788671480302-6284.webp",
+    "is_featured": true,
+    "is_trending": true
+  },
+  {
+    "id": 149,
+    "title": "Body Hair Remover & Shaver for Women (2-in-1) – Gentle Female Razor for Arms, Legs, Underarms & Bikini Line",
+    "slug": "body-hair-remover-shaver-for-women-2-in-1",
+    "tagline": "Rechargeable Dual-Head Lady Epilator & Precision Shaver with Built-in Smart LED Light",
+    "description": "Enjoy long-lasting, parlor-smooth skin from head to toe with the Kemei 2-in-1 Rechargeable Body Hair Remover & Lady Shaver. Combining the lasting results of an epilator with the gentle touch of a precision electric shaver, this versatile beauty essential eliminates the need for expensive salon appointments, sticky wax, and painful disposable razor burns.\n\nFeaturing two interchangeable click-on heads, it adapts effortlessly to your grooming needs. The high-speed micro-tweezer epilator head removes unwanted hair directly from the root for weeks of touchable smoothness, while the hypoallergenic foil shaver head delivers a close, pain-free shave on sensitive areas like underarms, arms, and the bikini line.\n\nThe built-in smart LED spotlight illuminates fine hairs so you never miss a spot, even in softer bathroom lighting. Equipped with a high-capacity rechargeable battery and a comfortable ergonomic grip, it gives you complete cordless freedom for quick touch-ups before events, holidays, or your everyday routine.",
+    "category_id": 25,
+    "category_name": "Personal Care & Beauty",
+    "category_slug": "personal-care",
+    "price": 3499,
+    "sale_price": 2599,
+    "discount_percentage": 26,
+    "badge": "BESTSELLER",
+    "stock_quantity": 50,
+    "is_in_stock": true,
+    "rating_average": 4.9,
+    "rating_count": 6,
+    "actual_review_count": 6,
+    "primary_image": "/uploads/kemei-2in1-ladies-shaver-epilator-main.webp",
     "is_featured": true,
     "is_trending": true
   }
@@ -259,7 +281,7 @@ export const INITIAL_CATEGORIES = [
     "slug": "personal-care",
     "description": "Electric groomers, hair removers & personal stylers",
     "image_url": "/uploads/category-personal-care.webp",
-    "product_count": 6
+    "product_count": 7
   },
   {
     "id": 30,
