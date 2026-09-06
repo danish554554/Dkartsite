@@ -219,6 +219,28 @@ export const INITIAL_PRODUCTS = [
     "primary_image": "/uploads/electric-foot-callus-remover-main.webp",
     "is_featured": true,
     "is_trending": true
+  },
+  {
+    "id": 145,
+    "title": "Hair Straightener Brush 2 in 1 Heated Curling Comb | Anti-Scald Electric Hair Styling Tool for Home & Travel",
+    "slug": "hair-straightener-brush-2-in-1-heated-comb",
+    "tagline": "Fast PTC Ceramic Heating Straightening Comb with Anti-Scald Bristles for Natural Salon Results",
+    "description": "Achieve sleek, naturally straight hair or soft bouncy curls in just minutes with the 2-in-1 Heated Hair Straightener Brush & Curling Comb. Designed for modern everyday styling, this heated comb lets you brush your way to smooth, frizz-free locks without the pinching, flattening, or burning associated with traditional flat irons.\n\nPowered by advanced PTC ceramic heating technology, the comb reaches your desired styling temperature in under 30 seconds. Its heat-insulated anti-scald outer teeth create a protective barrier between the high-temperature ceramic core and your scalp or hands, allowing you to style close to the roots with complete confidence.\n\nBuilt-in negative ion conditioning infuses moisture into every strand, smoothing cuticles and eliminating static flyaways for a radiant, healthy shine. Lightweight and travel-ready, it features universal dual voltage and a 360-degree anti-tangle swivel cord for effortless, snag-free styling at home or on the road.",
+    "category_id": 1,
+    "category_name": "Hair Styling & Care",
+    "category_slug": "hair-styling",
+    "price": 1999,
+    "sale_price": 1299,
+    "discount_percentage": 35,
+    "badge": "HOT",
+    "stock_quantity": 60,
+    "is_in_stock": true,
+    "rating_average": 4.9,
+    "rating_count": 7,
+    "actual_review_count": 7,
+    "primary_image": "/uploads/hair-straightener-brush-2in1-main.webp",
+    "is_featured": true,
+    "is_trending": true
   }
 ];
 
@@ -229,7 +251,7 @@ export const INITIAL_CATEGORIES = [
     "slug": "hair-styling",
     "description": "Premium blow dryers, hair straighteners, curlers & styling brushes.",
     "image_url": "/uploads/category-hair-styling.webp",
-    "product_count": 2
+    "product_count": 3
   },
   {
     "id": 25,
