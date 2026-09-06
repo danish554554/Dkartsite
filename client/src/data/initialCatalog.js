@@ -260,7 +260,29 @@ export const INITIAL_PRODUCTS = [
     "rating_average": 4.9,
     "rating_count": 6,
     "actual_review_count": 6,
-    "primary_image": "/uploads/kemei-2in1-ladies-shaver-epilator-main.webp",
+    "primary_image": "/uploads/kemei-2in1-ladies-shaver-epilator-speeds.webp",
+    "is_featured": true,
+    "is_trending": true
+  },
+  {
+    "id": 150,
+    "title": "Professional Electric Shaver for Men – Rechargeable Dual Foil Razor | Lightweight Aluminum Body | Skin-Friendly Shaver",
+    "slug": "professional-electric-shaver-men-dual-foil-razor",
+    "tagline": "Cordless Dual Reciprocating Foil Shaver with Pop-Up Precision Trimmer & Aluminum Body",
+    "description": "Get a clean, irritation-free barbershop finish right at home with the VGR V-353 Professional Dual Foil Electric Shaver. Engineered with hypoallergenic micro-perforated gold foil blades and a high-speed reciprocating motor, this razor glides gently across your jawline, cheeks, and neck to lift and cut stubble down to the skin without pulling, tugging, or razor burn.\n\nThe sleek chassis is crafted from lightweight anodized aluminum, giving you a solid, premium feel in hand while remaining compact enough to slip into your gym bag or travel kit. On the back, an integrated pop-up precision trimmer snaps open instantly to detail sideburns, tidy mustaches, and edge your beard lines with clean definition.\n\nPowered by a high-capacity rechargeable battery, you get consistent shaving power on a single charge with standard USB Type-C convenience. Whether doing a quick dry shave before work or detailing your look on the road, it delivers smooth skin and sharp edges wherever your day takes you.",
+    "category_id": 25,
+    "category_name": "Personal Care & Beauty",
+    "category_slug": "personal-care",
+    "price": 2799,
+    "sale_price": 2399,
+    "discount_percentage": 14,
+    "badge": "HOT SELLER",
+    "stock_quantity": 85,
+    "is_in_stock": true,
+    "rating_average": 4.9,
+    "rating_count": 7,
+    "actual_review_count": 7,
+    "primary_image": "/uploads/vgr-v353-electric-foil-shaver-main.webp",
     "is_featured": true,
     "is_trending": true
   }
@@ -281,7 +303,7 @@ export const INITIAL_CATEGORIES = [
     "slug": "personal-care",
     "description": "Electric groomers, hair removers & personal stylers",
     "image_url": "/uploads/category-personal-care.webp",
-    "product_count": 7
+    "product_count": 8
   },
   {
     "id": 30,
