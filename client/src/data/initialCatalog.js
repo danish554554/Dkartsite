@@ -40,7 +40,7 @@ export const INITIAL_PRODUCTS = [
     "rating_average": 5,
     "rating_count": 6,
     "actual_review_count": 6,
-    "primary_image": "/uploads/yes-finishing-hair-remover-main.webp",
+    "primary_image": "http://dkartsite.onrender.com/uploads/dkart-imgi-59-537b7c9898062c57e471c9c8ecc99174-1788872342603-4582.webp",
     "is_featured": true,
     "is_trending": true
   },
@@ -238,7 +238,7 @@ export const INITIAL_PRODUCTS = [
     "rating_average": 4.9,
     "rating_count": 7,
     "actual_review_count": 7,
-    "primary_image": "http://dkartsite.onrender.com/uploads/dkart-whatsapp-image-2025-06-13-at-6-51-23-pm-1788671480302-6284.webp",
+    "primary_image": "/uploads/hair-straightener-brush-2in1-antiscald.webp",
     "is_featured": true,
     "is_trending": true
   },
@@ -258,8 +258,8 @@ export const INITIAL_PRODUCTS = [
     "stock_quantity": 50,
     "is_in_stock": true,
     "rating_average": 4.9,
-    "rating_count": 6,
-    "actual_review_count": 6,
+    "rating_count": 10,
+    "actual_review_count": 10,
     "primary_image": "/uploads/kemei-2in1-ladies-shaver-epilator-speeds.webp",
     "is_featured": true,
     "is_trending": true
