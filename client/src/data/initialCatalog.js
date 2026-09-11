@@ -82,8 +82,8 @@ export const INITIAL_PRODUCTS = [
     "stock_quantity": 84,
     "is_in_stock": true,
     "rating_average": 5,
-    "rating_count": 6,
-    "actual_review_count": 6,
+    "rating_count": 12,
+    "actual_review_count": 12,
     "primary_image": "/uploads/kemei-rechargeable-hair-remover-usage.webp",
     "is_featured": true,
     "is_trending": true
