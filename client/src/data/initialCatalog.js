@@ -170,8 +170,8 @@ export const INITIAL_PRODUCTS = [
     "stock_quantity": 85,
     "is_in_stock": true,
     "rating_average": 5,
-    "rating_count": 7,
-    "actual_review_count": 7,
+    "rating_count": 13,
+    "actual_review_count": 13,
     "primary_image": "/uploads/eyebrow-trimmer-facial-remover-main.webp",
     "is_featured": true,
     "is_trending": true

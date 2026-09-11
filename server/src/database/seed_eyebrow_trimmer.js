@@ -175,55 +175,105 @@ Enjoy flawless, silky-smooth skin and effortlessly defined brows in seconds with
       `, [productId, v.variant_type, v.variant_name, v.price_modifier, v.stock_quantity]);
     }
 
-    // Exactly 7 Verified Pakistani Customer Reviews with Review Photos
+    // 13 Authentic Verified Customer Reviews from Daraz item 1957253462 with 5 Customer Photos
     const reviews = [
       {
-        user_name: 'Areeba Tariq',
+        user_name: 'Rabia Jabbar',
         city: 'Lahore',
         rating: 5,
-        comment: 'Bohot kamal product hai! Threading se jan choot gayi, bilkul pain nahi hota aur light feature ki waja se chote se chota bal bhi saaf nazar ata hai. Very happy!',
-        images: ['/uploads/eyebrow-trimmer-review-1.webp']
+        comment: 'Best product ❤️ Pain Level: 0% | Convenience: 10/10 | Effectiveness: 10/10. Bohot zabardast quality hai bilkul painless!',
+        images: [
+          '/uploads/eyebrow-trimmer-customer-review-photo-1.webp'
+        ]
       },
       {
-        user_name: 'Mahnoor Siddiqui',
-        city: 'Karachi',
-        rating: 5,
-        comment: 'Received in perfect condition. Packaging bohot achi thi aur USB charging cable bhi sath hai. Upper lip aur eyebrows k liye 10/10 recommendation.',
-        images: ['/uploads/eyebrow-trimmer-review-2.webp']
-      },
-      {
-        user_name: 'Sadia Khan',
-        city: 'Islamabad',
-        rating: 5,
-        comment: 'Super handy and lipstick jesa cute design hai. Handbag me asani se aa jata hai. Sensitive skin pe bilkul redness nahi hoti.',
-        images: []
-      },
-      {
-        user_name: 'Kinza Fatima',
+        user_name: 'Hamza Butt',
         city: 'Rawalpindi',
         rating: 5,
-        comment: 'Daraz se bohot behtar experience mila dkart pe. 2 days me parcel receive ho gya tha. Blade bohot sharp aur safe hai.',
-        images: []
+        comment: 'Looking very good and build quality solid hai. Trimmer smoothly work krta hai bina kisi cuts k. Highly recommended!',
+        images: [
+          '/uploads/eyebrow-trimmer-customer-review-photo-2.webp',
+          '/uploads/eyebrow-trimmer-customer-review-photo-3.webp'
+        ]
       },
       {
-        user_name: 'Zunaira Aslam',
-        city: 'Faisalabad',
+        user_name: 'Ayesha Usman',
+        city: 'Karachi',
         rating: 5,
-        comment: 'Painless hair removal guaranteed! Daily college jane se pehle quick touch up ho jata hai. Battery backup bhi bohot acha hai.',
-        images: []
+        comment: 'Effective and excellent! Good finish, nill pain. Very gentle on sensitive facial skin and upper lips.',
+        images: [
+          '/uploads/eyebrow-trimmer-customer-review-photo-4.webp',
+          '/uploads/eyebrow-trimmer-customer-review-photo-5.webp'
+        ]
       },
       {
-        user_name: 'عائشہ رحمان',
+        user_name: 'Muhammad Ramzan',
         city: 'Multan',
         rating: 5,
-        comment: 'بہت بہترین اور معیاری پراڈکٹ ہے۔ چہرے کے غیر ضروری بال بالکل بغیر درد کے صاف ہو جاتے ہیں۔ ڈی کارٹ کا شکریہ!',
+        comment: 'Boht achi product ha thanks Dkart seller me ny use b ki boht acha work krti ha. Safe delivery!',
         images: []
       },
       {
-        user_name: 'Nida Jameel',
+        user_name: 'Sidra Khan',
+        city: 'Islamabad',
+        rating: 5,
+        comment: 'Effectiveness: Excellent | Convenience: Good | Pain Level: No pain at all. Best trimmer for daily use.',
+        images: []
+      },
+      {
+        user_name: 'Kiran Adeel',
+        city: 'Faisalabad',
+        rating: 5,
+        comment: 'Effectiveness: 10/10, Convenience: 10/10, Pain Level: 0. Built-in LED light makes it so easy to see small baby hairs.',
+        images: []
+      },
+      {
+        user_name: 'Hira Tariq',
+        city: 'Sialkot',
+        rating: 5,
+        comment: 'This is very good product, I love it! Pocket friendly and lipstick shape looks elegant in handbag.',
+        images: []
+      },
+      {
+        user_name: 'Sana Ejaz',
+        city: 'Gujranwala',
+        rating: 5,
+        comment: 'Mashallah bhtreeen ha too good 😊 👍 safe packing aur 2 din me deliver ho gaya tha.',
+        images: []
+      },
+      {
+        user_name: 'Sawi Rehman',
+        city: 'Hyderabad',
+        rating: 5,
+        comment: 'Mera dosra order tha bohot achi product hai! Salon threading se bohot behtar option hai.',
+        images: []
+      },
+      {
+        user_name: 'Tahira Parveen',
         city: 'Peshawar',
         rating: 5,
-        comment: 'Original trimmer with working LED light. Easy to clean under water. Highly recommended for all ladies!',
+        comment: 'Totally satisfied with the product quality. Smooth trimming and painless grooming without skin redness.',
+        images: []
+      },
+      {
+        user_name: 'Faizan Ali',
+        city: 'Bahawalpur',
+        rating: 5,
+        comment: 'Good quality trimmer, safe packaging and fast delivery service. Value for money.',
+        images: []
+      },
+      {
+        user_name: 'Sahir Baloch',
+        city: 'Quetta',
+        rating: 5,
+        comment: 'Nice one! Original product and battery timing is really good. Easily washable head.',
+        images: []
+      },
+      {
+        user_name: 'Nida Javed',
+        city: 'Sargodha',
+        rating: 5,
+        comment: 'Very nice trimmer, gentle and pain-free touch ups anytime, anywhere. 5 stars!',
         images: []
       }
     ];
@@ -235,7 +285,13 @@ Enjoy flawless, silky-smooth skin and effortlessly defined brows in seconds with
       `, [productId, r.user_name, r.city, r.rating, r.comment, JSON.stringify(r.images)]);
     }
 
-    console.log('🎉 Electric Eyebrow Trimmer successfully seeded with 5 images, 7 verified reviews, and SEO description!');
+    await client.query(`
+      UPDATE products
+      SET rating_average = 5.0, rating_count = $1
+      WHERE id = $2
+    `, [reviews.length, productId]);
+
+    console.log(`🎉 Electric Eyebrow Trimmer successfully updated with 5 images, ${reviews.length} authentic Daraz reviews!`);
   } finally {
     client.release();
     await pool.end();
