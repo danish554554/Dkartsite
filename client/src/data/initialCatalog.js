@@ -16,8 +16,8 @@ export const INITIAL_PRODUCTS = [
     "stock_quantity": 75,
     "is_in_stock": true,
     "rating_average": 5,
-    "rating_count": 6,
-    "actual_review_count": 6,
+    "rating_count": 14,
+    "actual_review_count": 14,
     "primary_image": "/uploads/hair-dryer-brush-3-in-1-main.webp",
     "is_featured": true,
     "is_trending": true
