@@ -285,6 +285,28 @@ export const INITIAL_PRODUCTS = [
     "primary_image": "/uploads/vgr-v353-electric-foil-shaver-main.webp",
     "is_featured": true,
     "is_trending": true
+  },
+  {
+    "id": 250,
+    "title": "Mobile Phone Holder Stand Adjustable Desktop Tablet Stand for all Smart Devices",
+    "slug": "mobile-phone-holder-stand-adjustable-desktop-tablet-stand",
+    "tagline": "Universal Foldable & Height-Adjustable Desktop Mount for Smartphones, Tablets & iPads",
+    "description": "Keep your hands free and your posture comfortable with the Universal Adjustable Desktop Mobile & Tablet Stand. Designed for modern smartphones, phablets, and tablets up to 11 inches, this premium foldable stand provides stable, shake-free support for video calls, online classes, streaming movies, gaming, and recipe viewing in the kitchen.\n\nSmoothly adjust your viewing angle from 0 to 120 degrees and extend the telescopic arm to the ergonomic height that reduces neck strain and eye fatigue. High-friction silicone pads protect your phone from scratches and keep the stand firmly grounded without slipping.\n\nAn ergonomically cut cable slot lets you plug in your charging cable or earphones while your device remains safely docked. Folds down completely flat in seconds, fitting easily into your pocket, laptop bag, or backpack for effortless travel.",
+    "category_id": 28,
+    "category_name": "Smart Lifestyle Tech",
+    "category_slug": "smart-tech",
+    "price": 999,
+    "sale_price": 499,
+    "discount_percentage": 50,
+    "badge": "HOT DEAL",
+    "stock_quantity": 100,
+    "is_in_stock": true,
+    "rating_average": 4.9,
+    "rating_count": 14,
+    "actual_review_count": 14,
+    "primary_image": "/uploads/mobile-stand-adjustable-desktop-holder-main.webp",
+    "is_featured": true,
+    "is_trending": true
   }
 ];
 
@@ -304,6 +326,14 @@ export const INITIAL_CATEGORIES = [
     "description": "Electric groomers, hair removers & personal stylers",
     "image_url": "/uploads/category-personal-care.webp",
     "product_count": 8
+  },
+  {
+    "id": 28,
+    "name": "Smart Lifestyle Tech",
+    "slug": "smart-tech",
+    "description": "Smart mobile accessories, desktop stands & daily tech essentials",
+    "image_url": "/uploads/mobile-stand-adjustable-desktop-holder-main.webp",
+    "product_count": 1
   },
   {
     "id": 30,
