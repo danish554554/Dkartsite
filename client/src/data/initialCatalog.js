@@ -307,6 +307,28 @@ export const INITIAL_PRODUCTS = [
     "primary_image": "/uploads/mobile-stand-adjustable-desktop-holder-main.webp",
     "is_featured": true,
     "is_trending": true
+  },
+  {
+    "id": 308,
+    "title": "Kemei 3 In 1 Rechargeable Hair Clipper Shaver Beard Styling Trimmer Hair Removal Machine for Men",
+    "slug": "kemei-3-in-1-rechargeable-hair-clipper-shaver-trimmer",
+    "tagline": "3-in-1 Men's Grooming Kit: Precision Hair Clipper, Clean Foil Shaver & Nose/Ear Trimmer",
+    "description": "Upgrade your daily grooming routine with the Kemei 3-in-1 Rechargeable Multi-Grooming Machine. Engineered specifically for modern men, this versatile all-in-one grooming kit combines a high-speed hair clipper, a clean foil shaver, and a precision nose & ear trimmer in a single, compact handheld device.\n\nEasily switch between the wide hair clipper head for head and beard trimming, the micro-foil shaver head for a clean, irritation-free shave, and the rotary nose/ear trimmer head for neat detailing. Precision-ground stainless steel blades glide effortlessly through thick hair and coarse stubble without pulling, tugging, or causing razor burn.\n\nPowered by a long-lasting rechargeable battery that delivers up to 60 minutes of continuous cordless grooming on a full charge. Designed with an ergonomic textured anti-slip grip for comfortable, confident control around jawlines, neckline, and sideburns.",
+    "category_id": 25,
+    "category_name": "Personal Care & Beauty",
+    "category_slug": "personal-care",
+    "price": 2499,
+    "sale_price": 1699,
+    "discount_percentage": 32,
+    "badge": "BESTSELLER",
+    "stock_quantity": 85,
+    "is_in_stock": true,
+    "rating_average": 5.0,
+    "rating_count": 16,
+    "actual_review_count": 16,
+    "primary_image": "/uploads/kemei-3in1-shaver-trimmer-men-hero.webp",
+    "is_featured": true,
+    "is_trending": true
   }
 ];
 
@@ -325,7 +347,7 @@ export const INITIAL_CATEGORIES = [
     "slug": "personal-care",
     "description": "Electric groomers, hair removers & personal stylers",
     "image_url": "/uploads/category-personal-care.webp",
-    "product_count": 8
+    "product_count": 9
   },
   {
     "id": 28,
