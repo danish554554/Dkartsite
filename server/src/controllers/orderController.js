@@ -1,6 +1,7 @@
 import { query, queryOne, queryAll, execute, pool } from '../database/db.js';
 import { sendOrderEmails } from '../services/emailService.js';
 import { generateCustomerWhatsAppReceipt } from '../services/whatsappService.js';
+import { sendOrderPushNotification } from '../services/pushService.js';
 
 export const createOrder = async (req, res) => {
   const client = await pool.connect();
@@ -149,6 +150,11 @@ export const createOrder = async (req, res) => {
     // Trigger Email notifications to Customer & Admin
     sendOrderEmails(orderPayload, verifiedItems).catch((err) => {
       console.error('Background email notification error:', err);
+    });
+
+    // Trigger Instant Phone Push Notification to Admin
+    sendOrderPushNotification(orderPayload, verifiedItems).catch((err) => {
+      console.error('Background push notification error:', err);
     });
 
     // Generate WhatsApp Receipt
