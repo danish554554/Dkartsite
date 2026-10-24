@@ -329,6 +329,28 @@ export const INITIAL_PRODUCTS = [
     "primary_image": "/uploads/kemei-3in1-shaver-trimmer-men-hero.webp",
     "is_featured": true,
     "is_trending": true
+  },
+  {
+    "id": 399,
+    "title": "Hair Oil Applicator Comb with Metal Ball Tips | Scalp Massager, Root Oil Dispenser & 3-Piece Hair Care Set",
+    "slug": "hair-oil-applicator-comb-scalp-massager-root-dispenser",
+    "tagline": "Refillable Scalp Massager & Root Liquid Dispenser: Even Oil & Serum Distribution with Zero Waste",
+    "description": "Take your hair care and oiling routine to the next level with the Crystal Hair Oil Applicator Comb. Designed specifically for direct root application, this smart dispenser features rolling metal ball teeth that glide effortlessly over your scalp, delivering essential oils, hair growth serums, or minoxidil directly where they are needed most without any waste or greasy hands.\n\nTraditional hair oiling often leaves hair strands overly drenched while failing to penetrate deep into the scalp roots. With this ergonomic applicator, the liquid reservoir feeds an even, controlled micro-flow directly to the hair follicles as you comb. The smooth metal ball tips simultaneously provide a relaxing, invigorating scalp massage that stimulates micro-circulation and boosts nutrient absorption.\n\nRefilling is clean and hassle-free using the included precision dropper. Simply open the top silicone seal, fill the reservoir with your favorite hair oil, serum, or treatment, and replace the leak-proof cap. The transparent body lets you easily monitor liquid levels at a glance. Complete with a protective silicone base guard, this compact and lightweight tool is ideal for daily home use and travel convenience.",
+    "category_id": 1,
+    "category_name": "Hair Styling & Care",
+    "category_slug": "hair-styling",
+    "price": 1299,
+    "sale_price": 699,
+    "discount_percentage": 46,
+    "badge": "HOT DEAL",
+    "stock_quantity": 120,
+    "is_in_stock": true,
+    "rating_average": 5.0,
+    "rating_count": 6,
+    "actual_review_count": 6,
+    "primary_image": "/uploads/hair-oil-applicator-comb-hero.webp",
+    "is_featured": true,
+    "is_trending": true
   }
 ];
 
@@ -339,7 +361,7 @@ export const INITIAL_CATEGORIES = [
     "slug": "hair-styling",
     "description": "Premium blow dryers, hair straighteners, curlers & styling brushes.",
     "image_url": "/uploads/category-hair-styling.webp",
-    "product_count": 3
+    "product_count": 4
   },
   {
     "id": 25,
