@@ -10,19 +10,22 @@ export async function sendOrderPushNotification(order, items) {
 
   const title = `🚨 New Order #${order.id} — Rs. ${total}`;
   const message = `Customer: ${order.customer_name} (${order.customer_phone})\nCity: ${city}\nItems: ${itemList}\nCOD: Rs. ${total}`;
+  const topic = process.env.PUSH_TOPIC || 'dkart_orders_notify';
 
   try {
-    const topic = process.env.PUSH_TOPIC || 'dkart_orders_notify';
-    const res = await fetch(`https://ntfy.sh/${topic}`, {
+    const res = await fetch('https://ntfy.sh', {
       method: 'POST',
-      body: message,
-      headers: {
-        'Title': title,
-        'Priority': 'urgent',
-        'Tags': 'tada,package,moneybag',
-        'Click': `https://www.dkart.pk/admin`
-      }
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        topic,
+        title,
+        message,
+        priority: 5, // Urgent / High-priority ring
+        tags: ['tada', 'package', 'moneybag'],
+        click: 'https://www.dkart.pk/admin'
+      })
     });
+
     if (res.ok) {
       console.log(`✅ [Push] Instant phone alert dispatched to topic: ${topic}`);
     } else {
