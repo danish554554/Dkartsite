@@ -33,7 +33,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Static uploads folder
 const uploadDir = path.resolve(__dirname, '../uploads');
+const publicUploadDir = path.resolve(__dirname, '../public/uploads');
 app.use('/uploads', express.static(uploadDir));
+app.use('/uploads', express.static(publicUploadDir));
 
 // Root welcome route
 app.get('/', (req, res) => {
