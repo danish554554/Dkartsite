@@ -3,7 +3,7 @@
  * Supports official Meta Commerce Manager events for Catalog & Ad targeting.
  */
 
-const DEFAULT_PIXEL_ID = import.meta.env.VITE_META_PIXEL_ID || '';
+const DEFAULT_PIXEL_ID = import.meta.env.VITE_META_PIXEL_ID || '2315336899320747';
 
 export const initMetaPixel = (customPixelId = null) => {
   const pixelId = customPixelId || DEFAULT_PIXEL_ID;
