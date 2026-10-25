@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { ToastProvider } from './context/ToastContext';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
+import { initMetaPixel, trackMetaEvent } from './utils/metaPixel';
 
 import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
@@ -41,6 +42,17 @@ import AdminBanners from './pages/admin/AdminBanners';
 function AppLayout() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+
+  // Initialize Meta Pixel & track route change PageViews
+  useEffect(() => {
+    initMetaPixel();
+  }, []);
+
+  useEffect(() => {
+    if (!isAdminRoute) {
+      trackMetaEvent('PageView');
+    }
+  }, [location.pathname, isAdminRoute]);
 
   return (
     <div className="flex flex-col min-h-screen">

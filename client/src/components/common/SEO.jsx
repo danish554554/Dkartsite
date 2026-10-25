@@ -73,6 +73,24 @@ export default function SEO({
       setMeta('og:type', ogType, true);
     }
 
+    // Meta Commerce Product OpenGraph Tags
+    if (schema && schema['@type'] === 'Product') {
+      if (schema.offers) {
+        if (schema.offers.price) setMeta('product:price:amount', String(schema.offers.price), true);
+        if (schema.offers.priceCurrency) setMeta('product:price:currency', schema.offers.priceCurrency, true);
+        if (schema.offers.availability) {
+          const avail = schema.offers.availability.includes('InStock') ? 'in stock' : 'out of stock';
+          setMeta('product:availability', avail, true);
+        }
+        if (schema.offers.itemCondition) {
+          const cond = schema.offers.itemCondition.includes('NewCondition') ? 'new' : 'used';
+          setMeta('product:condition', cond, true);
+        }
+      }
+      if (schema.sku) setMeta('product:retailer_item_id', String(schema.sku), true);
+      if (schema.brand && schema.brand.name) setMeta('product:brand', schema.brand.name, true);
+    }
+
     // 5. Inject JSON-LD Schema
     let scriptTag = null;
     if (schema) {

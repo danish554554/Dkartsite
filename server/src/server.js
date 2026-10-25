@@ -9,6 +9,7 @@ import authRoutes from './routes/authRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import { buildMetaCatalog } from './database/generate_meta_catalog.js';
 
 dotenv.config();
 
@@ -67,6 +68,30 @@ app.use('/api/auth', authRoutes);
 app.use('/api', productRoutes);
 app.use('/api', orderRoutes);
 app.use('/api/admin', adminRoutes);
+
+// Meta Commerce Manager Catalog Feeds (Dynamic from PostgreSQL)
+app.get(['/meta-catalog.xml', '/api/feed/meta', '/api/feed/meta.xml'], async (req, res) => {
+  try {
+    const { xml } = await buildMetaCatalog();
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.send(xml);
+  } catch (err) {
+    console.error('Meta catalog feed error:', err);
+    res.status(500).send('Error generating Meta catalog feed: ' + err.message);
+  }
+});
+
+app.get(['/meta-catalog.csv', '/api/feed/meta.csv'], async (req, res) => {
+  try {
+    const { csv } = await buildMetaCatalog();
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="meta-catalog.csv"');
+    res.send(csv);
+  } catch (err) {
+    console.error('Meta catalog CSV error:', err);
+    res.status(500).send('Error generating Meta catalog CSV: ' + err.message);
+  }
+});
 
 // Global Error Handler
 app.use((err, req, res, next) => {
